@@ -159,8 +159,16 @@ public class FishGame extends Application {
 	// Over.
 	public static int mode = -1;
 
+	static String[] args;
+
 // End changed variables.
 
+	
+	
+	
+	
+	
+	
 	// Landon Zweigle
 	// Used whenever we need to reset the sprites.
 	// Parameters: none
@@ -205,7 +213,6 @@ public class FishGame extends Application {
 		launch(args);
 	}
 
-	static String[] args;
 	
 	public static void main(String[] args) throws Exception {
 		FishGame.args = args;

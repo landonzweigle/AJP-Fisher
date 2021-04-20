@@ -5,11 +5,17 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.ByteBuffer;
 
 import APJ.Fisher.FishGame;
 
 public class Comms extends Thread{
+	
+//	Integer toWrite = 12345678;
+//	this.dOut.write(toWrite); //This works if I have a very large bytes to recieve on python...?			
+//	byte[] bytes = ByteBuffer.allocate(4).putInt(1234567876).array();
+//	this.dOut.write(bytes);
+	
+	
 	public static Comms singleton;
 	
 	public final int port = 13337;
@@ -34,10 +40,7 @@ public class Comms extends Thread{
 			this.dIn = new DataInputStream(sock.getInputStream());
 			this.dOut = new DataOutputStream(sock.getOutputStream());
 			
-//			Integer toWrite = 12345678;
-//			this.dOut.write(toWrite); //This works if I have a very large bytes to recieve on python...?			
-//			byte[] bytes = ByteBuffer.allocate(4).putInt(1234567876).array();
-//			this.dOut.write(bytes);
+
 			//This is a weird start-up sequence ¯\_(ツ)_/¯
 			
 			byte[] msgToSend = "Hello python :)".getBytes();
