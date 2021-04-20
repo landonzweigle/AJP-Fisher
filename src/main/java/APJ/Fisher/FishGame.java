@@ -9,6 +9,7 @@ import java.io.PrintWriter;
 import java.net.URL;
 import java.util.Scanner;
 
+import APJ.Hook.Comms;
 import javafx.application.Application;
 
 import javafx.animation.AnimationTimer;
@@ -158,8 +159,16 @@ public class FishGame extends Application {
 	// Over.
 	public static int mode = -1;
 
+	static String[] args;
+
 // End changed variables.
 
+	
+	
+	
+	
+	
+	
 	// Landon Zweigle
 	// Used whenever we need to reset the sprites.
 	// Parameters: none
@@ -200,12 +209,15 @@ public class FishGame extends Application {
 		fish.setWidth((int) fish.getImg().getWidth());
 		fish.setMaxH(687);
 		fish.setMinH(35);
-
+		
+		launch(args);
 	}
 
-	public static void main(String[] args) {
-		startGame();
-		launch(args);
+	
+	public static void main(String[] args) throws Exception {
+		FishGame.args = args;
+		Comms comms = new Comms();
+		comms.start();
 	}
 
 	

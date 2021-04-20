@@ -4,4 +4,5 @@ module APJ {
 	requires javafx.base;
 	requires javafx.graphics;
 	requires javafx.media;
+	requires java.management;
 }
