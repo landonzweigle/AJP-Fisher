@@ -9,6 +9,7 @@ import java.io.PrintWriter;
 import java.net.URL;
 import java.util.Scanner;
 
+import APJ.Hook.Comms;
 import javafx.application.Application;
 
 import javafx.animation.AnimationTimer;
@@ -200,12 +201,16 @@ public class FishGame extends Application {
 		fish.setWidth((int) fish.getImg().getWidth());
 		fish.setMaxH(687);
 		fish.setMinH(35);
-
+		
+		launch(args);
 	}
 
-	public static void main(String[] args) {
-		startGame();
-		launch(args);
+	static String[] args;
+	
+	public static void main(String[] args) throws Exception {
+		FishGame.args = args;
+		Comms comms = new Comms();
+		comms.start();
 	}
 
 	

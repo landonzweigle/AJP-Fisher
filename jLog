@@ -1,0 +1,18 @@
+Starting a Gradle Daemon, 1 busy and 1 stopped Daemons could not be reused, use --status for details
+
+> Configure project :
+Project : => 'APJ' Java module
+
+> Task :compileJava
+> Task :processResources
+> Task :classes
+> Task :configJavafxRun
+
+> Task :run FAILED
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 7.0.
+Use '--warning-mode all' to sh
+BUILD SUCCESSFUL in 2m 11s
+4 actionable tasks: 2 executed, 2 up-to-date
+serguide/command_line_interface.html#sec:command_line_warnings
+4 actionable tasks: 4 executed
