@@ -165,7 +165,30 @@ public class FishGame extends Application {
 	static double[] dtInfo = new double[10]; // hold the last 10 delta times.
 	static int dtiIndex = 0;
 	
+	public enum FrameMode{
+		PersonPlay,   //The "regular" game (this version still has stuff removed.)
+		FrameAtTime,  //For training a model. Waits until a specified even to process the next frame.
+	}
 	
+	public enum GameMode{
+		Normal,
+		SafePractice, //You cannot lose a fish and there is no intermediate state of casting/etc. Once a fish is caught a new fish is generated.
+		Practice      //Like SafePractice but you can lose fish.
+	}
+	
+	private static FrameMode framemode = FrameMode.FrameAtTime;
+	private static GameMode gamemode = GameMode.SafePractice;
+	
+	private static boolean precedFrame = false; // Set to true to proceed to the next frame in gamemode FrameAtTime.
+	private static boolean frameProccessed = false;
+	
+	public static synchronized void nextFrame() {
+		precedFrame = true;
+	}
+	
+	public static synchronized boolean isFrameProccessed() {
+		return frameProccessed;
+	}
 	
 // End changed variables.
 
@@ -201,15 +224,17 @@ public class FishGame extends Application {
 		
 		fish.setImg(new Image(ClassLoader.getSystemClassLoader().getResource("fish.png").toString(), 300, 75, true, false));
 
+		int startPos = 560; //They should start together for realism ;)
+		
 		// Set base Capture area information
-		CA.setPos(102, -100); //OG: 862, -100
+		CA.setPos(862, startPos); //OG: 862, -100
 		CA.setHeight((int) CA.getImg().getHeight());
 		CA.setWidth((int) CA.getImg().getWidth());
 		CA.setMaxH(687);
 		CA.setMinH(35);
 
 		// Set base fish information
-		fish.setPos(852, 560);
+		fish.setPos(852, startPos);
 		fish.setHeight((int) fish.getImg().getHeight());
 		fish.setWidth((int) fish.getImg().getWidth());
 		fish.setMaxH(687);
@@ -346,23 +371,24 @@ public class FishGame extends Application {
 // ----------------Animation Hub------------------//
 		// Instantiate the animation timer
 		new AnimationTimer() {
+			
+			
 			// This is essentially just a while loop.
 			@Override
 			public void handle(long now) {
-
-				// clear the screen.
-				gc.clearRect(0, 0, 1280, 720);
-
-				//Display total Frame count in the bottom right:
-				
 				
 				
 				if (mode == 3) {
+					// clear the screen.
+					gc.clearRect(0, 0, 1280, 720);
 					// Image that says "Game Over, you caught # fish". Closes after 5 seconds.
 					gc.drawImage(FISHLOSE, 0, 0);
 					fishImage = null;
-				}
-				if (mode == 2) {
+				}else if (mode == 2) {
+					// clear the screen.
+					gc.clearRect(0, 0, 1280, 720);
+
+					
 					// Animate the bobber being flung.
 					if (System.currentTimeMillis() >= animTime + (animPos * frameRate)) {
 						animPos++;
@@ -386,11 +412,15 @@ public class FishGame extends Application {
 					if (scaledFish != null && animPos < 5 && animPos >= 1) {
 						gc.drawImage(scaledFish, bobberPos[animPos - 1][0], bobberPos[animPos - 1][1]);
 					}
-				}
-				if (mode == 4) {
+				}else if (mode == 4) {
+					// clear the screen.
+					gc.clearRect(0, 0, 1280, 720);
+
 					gc.drawImage(GAMEOVER, 0, 0);
-				}
-				if (mode == 0) {
+				}else if (mode == 0) {
+					// clear the screen.
+					gc.clearRect(0, 0, 1280, 720);
+
 					if (System.currentTimeMillis() >= waitTime && firstNoise == true) {
 						bobberDown.play(1);
 						firstNoise = false;
@@ -406,8 +436,7 @@ public class FishGame extends Application {
 						maxWaitTime = waitTime + MAXWAITTIMEHOLD;
 						firstNoise = true;
 					}
-				}
-				if (mode == -1) {
+				}else if (mode == -1) {
 					if (System.currentTimeMillis() >= animTime + (animPos * frameRate)) {
 						animPos++;
 						animPos = (int) clamp(animPos, 0, 5);
@@ -417,8 +446,18 @@ public class FishGame extends Application {
 					} else {
 						gc.drawImage(castAnim[4 - animPos], 0, 0);
 					}
-				}
-				if (mode == 1) {
+				}else if (mode == 1) {
+					
+					if(framemode==FrameMode.FrameAtTime && precedFrame==false) {
+						return;
+					}else if(framemode==FrameMode.FrameAtTime && precedFrame==true) {
+						// clear the screen.
+						gc.clearRect(0, 0, 1280, 720);
+
+						precedFrame = false;
+						frameProccessed = false;
+					}
+					
 					gc.drawImage(MINIGAME, 0, 0);
 					// Generate time since last frame.
 					double deltaT = (now - lastTime) / 1000000000.0;
@@ -536,6 +575,8 @@ public class FishGame extends Application {
 				root.getChildren().setAll(can);
 				frameCount++;
 				lastTime = now;
+				
+				frameProccessed = true;
 			}
 		}.start();
 		//Update the frame count
