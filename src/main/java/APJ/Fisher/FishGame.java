@@ -50,9 +50,9 @@ public class FishGame extends Application {
 	// Time of last frame.
 	public static double lastTime = System.nanoTime();
 	// The Capture areas gravity rate.
-	public static double GRAV = -30;
+	public static double GRAV = -2500; //base is -4000
 	// Acceleration rate.
-	public static double MOTOR = 50;
+	public static double MOTOR = 3500; //base is 5000
 	// Fishes max speed.
 	public static double MAXSPEED = 1000;
 	// fishes min speed.
@@ -277,7 +277,7 @@ public class FishGame extends Application {
 		fish.update(0);
 		fish.show(gc);
 		animPos = 5;
-
+		
 // ---------------------Get Mouse Events-------------------//
 		sc.setOnMousePressed(event -> {
 			if (event.getButton() == MouseButton.PRIMARY) {
@@ -435,7 +435,7 @@ public class FishGame extends Application {
 					if (isClicked == true) {
 						CA.setyVel(clamp(CA.getyVel() + MOTOR * deltaT, MINSPEED, MAXSPEED));
 					} else {
-						CA.setyVel(clamp(CA.getyVel() + deltaT, MINSPEED, MAXSPEED));
+						CA.setyVel(clamp(CA.getyVel() + GRAV * deltaT, MINSPEED, MAXSPEED));
 					}
 
 					// Update the fish and the Capture area in order to display its new position.
