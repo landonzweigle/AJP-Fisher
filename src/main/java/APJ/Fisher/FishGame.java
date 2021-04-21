@@ -66,7 +66,7 @@ public class FishGame extends Application {
 	// The last time of the frame.
 	public static double lt = System.currentTimeMillis();
 	// rate the fish slows down.
-	public static double DECRATE = 1;
+	public static double DECRATE = .75;
 	// Fish minimum speed.
 	public static double MINFISH = 10;
 	// Fish max speed.
@@ -560,12 +560,12 @@ public class FishGame extends Application {
 			// required to get, so we can have a relative time.
 			lt = cur;
 			// Milliseconds to wait.
-			ttc = ((Math.random()) * 7.5 / difficulty);
+			ttc = ((Math.random()) * 10 / difficulty);
 
 			// The rest of the method is just to make the fish movement feel balanced given
 			// its difficulty. Mult changes the direction.
 			int mult = -1;
-			if (Math.random() <= .25) {
+			if (Math.random() <= .025) {
 				mult = 1;
 			}
 			// Depending on the fishes current velocity, we change its velocity.

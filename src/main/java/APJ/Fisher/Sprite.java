@@ -42,7 +42,7 @@ public class Sprite
 
 		//Landon Zweigle
 		//Change the x and y position by its velocity over time.
-		//parameters: time = time that velocity was in affect.
+		//parameters: time = time that velocity was in affect (delta time).
 		//returns: none.
 	public void update(double time) {
 		this.y -= (this.yVel * time);
