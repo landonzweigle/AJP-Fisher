@@ -50,7 +50,7 @@ public class FishGame extends Application {
 	// Time of last frame.
 	public static double lastTime = System.nanoTime();
 	// The Capture areas gravity rate.
-	public static double GRAV = -40;
+	public static double GRAV = -30;
 	// Acceleration rate.
 	public static double MOTOR = 50;
 	// Fishes max speed.
@@ -66,7 +66,7 @@ public class FishGame extends Application {
 	// The last time of the frame.
 	public static double lt = System.currentTimeMillis();
 	// rate the fish slows down.
-	public static double DECRATE = .75;
+	public static double DECRATE = 75;
 	// Fish minimum speed.
 	public static double MINFISH = 10;
 	// Fish max speed.
@@ -429,13 +429,13 @@ public class FishGame extends Application {
 					double newVel = detMove();
 
 					// Set the new fishes movement.
-					fish.setyVel(clamp(Math.abs(newVel) - DECRATE, MINFISH, MAXFISH) * ((newVel >= 0) ? 1 : -1));
+					fish.setyVel(clamp(Math.abs(newVel) - DECRATE * deltaT, MINFISH, MAXFISH) * ((newVel >= 0) ? 1 : -1));
 
 					// if the player is clicking the left mouse button the fish raises.
 					if (isClicked == true) {
-						CA.setyVel(clamp(CA.getyVel() + MOTOR, MINSPEED, MAXSPEED));
+						CA.setyVel(clamp(CA.getyVel() + MOTOR * deltaT, MINSPEED, MAXSPEED));
 					} else {
-						CA.setyVel(clamp(CA.getyVel() + GRAV, MINSPEED, MAXSPEED));
+						CA.setyVel(clamp(CA.getyVel() + deltaT, MINSPEED, MAXSPEED));
 					}
 
 					// Update the fish and the Capture area in order to display its new position.
