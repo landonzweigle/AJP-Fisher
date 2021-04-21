@@ -1,9 +1,5 @@
 package APJ.Fisher;
 
-import java.io.BufferedReader;
-
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URL;
@@ -130,8 +126,7 @@ public class FishGame extends Application {
 	public double manditoryWait = 1000.0;
 	// manditory wait time added to the current time (later on).
 	public double actualManditoryWait = 0.0;
-	// The type of game the user chosses.
-	public static int playMode;
+
 	// position to display the name
 	public static int[] namePos = new int[] { 769, 400 };
 	// positino to display the difficulty.
@@ -154,47 +149,52 @@ public class FishGame extends Application {
 	public static double myPoints = 50;
 	// from 1 and up (recommended to be less than 10) Difficulty of fish.
 	public static int difficulty = 7;
-	// The current mode of the game (see full definitions above) -1 = Mode_idle_int.
-	// 0 = Mode_idle_out. 1 = Mode_Base. 2 = Mode_Win 3 = Mode_Lose.Mode 4=Game
-	// Over.
+
+	// The current mode of the game (see full definitions above)
+	// -1 = Mode_idle_int.
+	// 0 = Mode_idle_out.
+	// 1 = Mode_Base.
+	// 2 = Mode_Win
+	// 3 = Mode_Lose.
+	// 4 = Game Over.
 	public static int mode = -1;
 
 	static String[] args;
 
 // End changed variables.
 
-	
-	
-	
-	
-	
-	
 	// Landon Zweigle
 	// Used whenever we need to reset the sprites.
 	// Parameters: none
 	// Returns: none.
 	public static void startGame() {
 		// Set the images.
-		FISHLOSE = new Image(ClassLoader.getSystemClassLoader().getResource("You Lost the Fish0.png").toString(), 1280, 720, true, false);
-		FISHWON = new Image(ClassLoader.getSystemClassLoader().getResource("Capture Screen.png").toString(), 1280, 720, true, false);
-		GAMEOVER = new Image(ClassLoader.getSystemClassLoader().getResource("Game Over0.png").toString(), 1280, 720, true, false);
+		FISHLOSE = new Image(ClassLoader.getSystemClassLoader().getResource("You Lost the Fish0.png").toString(), 1280,
+				720, true, false);
+		FISHWON = new Image(ClassLoader.getSystemClassLoader().getResource("Capture Screen.png").toString(), 1280, 720,
+				true, false);
+		GAMEOVER = new Image(ClassLoader.getSystemClassLoader().getResource("Game Over0.png").toString(), 1280, 720,
+				true, false);
 		bar = new Image(ClassLoader.getSystemClassLoader().getResource("bar.png").toString(), 64, 0, false, false);
-		
+
 		Image testImage = new Image(ClassLoader.getSystemClassLoader().getResource("Casting0.png").toString());
 		print("casting0 --> " + testImage.getUrl());
-		
-		
-		castAnim = new Image[] { new Image(ClassLoader.getSystemClassLoader().getResource("Casting0.png").toString()), 
+
+		castAnim = new Image[] { new Image(ClassLoader.getSystemClassLoader().getResource("Casting0.png").toString()),
 				new Image(ClassLoader.getSystemClassLoader().getResource("Casting1.png").toString()),
-				new Image(ClassLoader.getSystemClassLoader().getResource("Casting2.png").toString()), 
+				new Image(ClassLoader.getSystemClassLoader().getResource("Casting2.png").toString()),
 				new Image(ClassLoader.getSystemClassLoader().getResource("Casting3.png").toString()),
 				new Image(ClassLoader.getSystemClassLoader().getResource("Casting4.png").toString()) };
-		
-		MINIGAME = new Image(ClassLoader.getSystemClassLoader().getResource("Capture Area.png").toString(), 1280, 720, true, false);
-		IDLE = new Image(ClassLoader.getSystemClassLoader().getResource("Ocean.png").toString(), 1280, 720, true, false);
 
-		CA.setImg(new Image(ClassLoader.getSystemClassLoader().getResource("CA.png").toString(), 129, CA_HEIGHT, false, false));
-		fish.setImg(new Image(ClassLoader.getSystemClassLoader().getResource("fish.png").toString(), 300, 75, true, false));
+		MINIGAME = new Image(ClassLoader.getSystemClassLoader().getResource("Capture Area.png").toString(), 1280, 720,
+				true, false);
+		IDLE = new Image(ClassLoader.getSystemClassLoader().getResource("Ocean.png").toString(), 1280, 720, true,
+				false);
+
+		CA.setImg(new Image(ClassLoader.getSystemClassLoader().getResource("CA.png").toString(), 129, CA_HEIGHT, false,
+				false));
+		fish.setImg(
+				new Image(ClassLoader.getSystemClassLoader().getResource("fish.png").toString(), 300, 75, true, false));
 
 		// Set base Capture area information
 		CA.setPos(862, -100);
@@ -209,18 +209,22 @@ public class FishGame extends Application {
 		fish.setWidth((int) fish.getImg().getWidth());
 		fish.setMaxH(687);
 		fish.setMinH(35);
-		
+
 		launch(args);
 	}
 
-	
+	static final boolean useComms = false;
+
 	public static void main(String[] args) throws Exception {
-		FishGame.args = args;
-		Comms comms = new Comms();
-		comms.start();
+		if (useComms) {
+			FishGame.args = args;
+			Comms comms = new Comms();
+			comms.start();
+		}else {
+			startGame();
+		}
 	}
 
-	
 	// EveryOne
 	@Override
 	public void start(Stage stage) throws Exception {
@@ -232,7 +236,7 @@ public class FishGame extends Application {
 		// Credit for audio goes to: https://www.youtube.com/watch?v=xyA5c-ajXyg
 		// I edited the audio and made it loopable.
 		AudioClip atmosphericSound = new AudioClip(locationBK.toString());
-		
+
 		atmosphericSound.setCycleCount(AudioClip.INDEFINITE);
 		atmosphericSound.play(.1);
 		// Set stage title
@@ -264,9 +268,10 @@ public class FishGame extends Application {
 				// Depending on the current mode (see definitions), we set values and call
 				// functions Here.
 
+				//If the player is idle.
 				if (mode == -1) {
 					// Generate the random fish.
-					fishNum = (int) (Math.random() * (14));
+					fishNum = (int) (Math.random() * 14);
 					waitTime = (Math.random() * 5) + 2.5;
 					waitTime = (waitTime * 1000) + System.currentTimeMillis();
 					maxWaitTime = waitTime + MAXWAITTIMEHOLD;
@@ -277,8 +282,8 @@ public class FishGame extends Application {
 					animPos = 0;
 					mode = 0;
 					animTime = System.currentTimeMillis();
-
 				}
+				
 				// If the player left clicks within a time window set mode to 1.
 				// If the player misses the window (is too late), and the player clicks, set
 				// mode to 1.
@@ -286,14 +291,19 @@ public class FishGame extends Application {
 				// they can click again.
 				else if (mode == 0
 						&& (System.currentTimeMillis() >= waitTime && System.currentTimeMillis() <= maxWaitTime)) {
+					// Start the game!
 					mode = 1;
+
 				} else if (mode == 0 && (System.currentTimeMillis() <= waitTime)) {
+					// Pulled before the fish grabbed the bobber :(
 					animTime = System.currentTimeMillis();
 					animPos = 0;
 					fishImage = null;
 					fishName = null;
 					scaledFish = null;
 					mode = -1;
+
+					// If mode == lost fish or won fish.
 				} else if ((mode == 3 || mode == 2) && (System.currentTimeMillis() >= actualManditoryWait)) {
 					if (mode == 2) {
 
@@ -433,12 +443,6 @@ public class FishGame extends Application {
 						animPos = 0;
 						animTime = System.currentTimeMillis();
 						fishCaught++;
-						if (fishCaught > recordFish) {
-							isRecord = true;
-							recordFish = fishCaught;
-							// Todo: Save the number.
-							saveGame();
-						}
 
 						myPoints = CAPTUREPOINTS / 2;
 						firstNoise = true;
@@ -449,14 +453,10 @@ public class FishGame extends Application {
 						actualManditoryWait = System.currentTimeMillis() + manditoryWait;
 						// go into lose mode method
 						fishLost++;
-						if (fishLost >= 3 && playMode == 1) {
-							mode = 4;
-							actualManditoryWait = System.currentTimeMillis() + manditoryWait;
-						} else {
-							mode = 3;
-							myPoints = CAPTUREPOINTS / 2;
-							firstNoise = true;
-						}
+
+						mode = 3;
+						myPoints = CAPTUREPOINTS / 2;
+						firstNoise = true;
 					}
 				}
 				// This will try to make fish caught/fish lost display
@@ -488,24 +488,6 @@ public class FishGame extends Application {
 		}.start();
 		// show everything.
 		stage.show();
-	}
-
-	public static boolean saveGame() {
-		String file = "record.txt";
-		boolean success = false;
-		try {
-			PrintWriter fw = new PrintWriter(file);
-
-			fw.write("" + recordFish);
-			fw.close();
-			success = true;
-
-		} catch (IOException ex) {
-			print("Something went wrong saving the record amount of fish.");
-			ex.printStackTrace();
-			success = false;
-		}
-		return success;
 	}
 
 	/*

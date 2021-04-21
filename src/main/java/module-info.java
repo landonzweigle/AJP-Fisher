@@ -1,8 +1,9 @@
 module APJ {
 	exports APJ.Fisher;
 
-	requires javafx.base;
-	requires javafx.graphics;
-	requires javafx.media;
-	requires java.management;
+	
+	requires transitive javafx.base;
+	requires transitive javafx.graphics;
+	requires transitive javafx.media;
+	requires transitive java.management;
 }
