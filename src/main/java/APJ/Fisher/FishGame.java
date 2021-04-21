@@ -1,9 +1,5 @@
 package APJ.Fisher;
 
-import java.io.BufferedReader;
-
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URL;
@@ -54,23 +50,23 @@ public class FishGame extends Application {
 	// Time of last frame.
 	public static double lastTime = System.nanoTime();
 	// The Capture areas gravity rate.
-	public static double GRAV = -40;
+	public static double GRAV = -2500; //base is -4000
 	// Acceleration rate.
-	public static double MOTOR = 50;
+	public static double MOTOR = 3500; //base is 5000
 	// Fishes max speed.
 	public static double MAXSPEED = 1000;
 	// fishes min speed.
 	public static double MINSPEED = -1000;
 	// Rate that the bar raises.
-	public static double CAPRATEUP = .25;
+	public static double CAPRATEUP = 25;
 	// rate the bar lowers.
-	public static double CAPRATEDOWN = .5;
+	public static double CAPRATEDOWN = 50;
 	// the time required to change fishes direction
 	public static double ttc;
 	// The last time of the frame.
 	public static double lt = System.currentTimeMillis();
 	// rate the fish slows down.
-	public static double DECRATE = 1;
+	public static double DECRATE = 75;
 	// Fish minimum speed.
 	public static double MINFISH = 10;
 	// Fish max speed.
@@ -130,8 +126,7 @@ public class FishGame extends Application {
 	public double manditoryWait = 1000.0;
 	// manditory wait time added to the current time (later on).
 	public double actualManditoryWait = 0.0;
-	// The type of game the user chosses.
-	public static int playMode;
+
 	// position to display the name
 	public static int[] namePos = new int[] { 769, 400 };
 	// positino to display the difficulty.
@@ -154,73 +149,131 @@ public class FishGame extends Application {
 	public static double myPoints = 50;
 	// from 1 and up (recommended to be less than 10) Difficulty of fish.
 	public static int difficulty = 7;
-	// The current mode of the game (see full definitions above) -1 = Mode_idle_int.
-	// 0 = Mode_idle_out. 1 = Mode_Base. 2 = Mode_Win 3 = Mode_Lose.Mode 4=Game
-	// Over.
+
+	// The current mode of the game (see full definitions above)
+	// -1 = Mode_idle_int.
+	// 0 = Mode_idle_out.
+	// 1 = Mode_Base.
+	// 2 = Mode_Win
+	// 3 = Mode_Lose.
+	// 4 = Game Over.
 	public static int mode = -1;
 
 	static String[] args;
 
+	static double lastFPS = 0;
+	static double[] dtInfo = new double[10]; // hold the last 10 delta times.
+	static int dtiIndex = 0;
+	
+	public enum FrameMode{
+		PersonPlay,   //The "regular" game (this version still has stuff removed.)
+		FrameAtTime,  //For training a model. Waits until a specified even to process the next frame.
+	}
+	
+	public enum GameMode{
+		Normal,       //The "regular" game (this version still has stuff removed.)
+		SafePractice, //You cannot lose a fish and there is no intermediate state of casting/etc. Once a fish is caught a new fish is generated. (the game starts with a cought fish)
+		Practice      //Like SafePractice but you can lose fish. Once a fish is lost a new fish is generated.
+	}
+	
+	
+	
+	
+	
+	private static final FrameMode framemode = FrameMode.PersonPlay;
+	private static final GameMode gamemode = GameMode.SafePractice;
+	
+	private static boolean precedFrame = false; // Set to true to proceed to the next frame in gamemode FrameAtTime.
+	private static boolean frameProccessed = false;
+	
+	
+	
+	
+	
+	
+	public static synchronized void nextFrame() {
+		precedFrame = true;
+	}
+	
+	public static synchronized boolean isFrameProccessed() {
+		return frameProccessed;
+	}
+	
 // End changed variables.
 
-	
-	
-	
-	
-	
-	
 	// Landon Zweigle
 	// Used whenever we need to reset the sprites.
 	// Parameters: none
 	// Returns: none.
 	public static void startGame() {
 		// Set the images.
-		FISHLOSE = new Image(ClassLoader.getSystemClassLoader().getResource("You Lost the Fish0.png").toString(), 1280, 720, true, false);
-		FISHWON = new Image(ClassLoader.getSystemClassLoader().getResource("Capture Screen.png").toString(), 1280, 720, true, false);
-		GAMEOVER = new Image(ClassLoader.getSystemClassLoader().getResource("Game Over0.png").toString(), 1280, 720, true, false);
+		FISHLOSE = new Image(ClassLoader.getSystemClassLoader().getResource("You Lost the Fish0.png").toString(), 1280,
+				720, true, false);
+		FISHWON = new Image(ClassLoader.getSystemClassLoader().getResource("Capture Screen.png").toString(), 1280, 720,
+				true, false);
+		GAMEOVER = new Image(ClassLoader.getSystemClassLoader().getResource("Game Over0.png").toString(), 1280, 720,
+				true, false);
 		bar = new Image(ClassLoader.getSystemClassLoader().getResource("bar.png").toString(), 64, 0, false, false);
-		
+
 		Image testImage = new Image(ClassLoader.getSystemClassLoader().getResource("Casting0.png").toString());
 		print("casting0 --> " + testImage.getUrl());
-		
-		
-		castAnim = new Image[] { new Image(ClassLoader.getSystemClassLoader().getResource("Casting0.png").toString()), 
+
+		castAnim = new Image[] { new Image(ClassLoader.getSystemClassLoader().getResource("Casting0.png").toString()),
 				new Image(ClassLoader.getSystemClassLoader().getResource("Casting1.png").toString()),
-				new Image(ClassLoader.getSystemClassLoader().getResource("Casting2.png").toString()), 
+				new Image(ClassLoader.getSystemClassLoader().getResource("Casting2.png").toString()),
 				new Image(ClassLoader.getSystemClassLoader().getResource("Casting3.png").toString()),
 				new Image(ClassLoader.getSystemClassLoader().getResource("Casting4.png").toString()) };
-		
-		MINIGAME = new Image(ClassLoader.getSystemClassLoader().getResource("Capture Area.png").toString(), 1280, 720, true, false);
-		IDLE = new Image(ClassLoader.getSystemClassLoader().getResource("Ocean.png").toString(), 1280, 720, true, false);
 
+		MINIGAME = new Image(ClassLoader.getSystemClassLoader().getResource("Capture Area.png").toString(), 1280, 720,true, false);
+		
+		IDLE = new Image(ClassLoader.getSystemClassLoader().getResource("Ocean.png").toString(), 1280, 720, true,false);
+
+		
 		CA.setImg(new Image(ClassLoader.getSystemClassLoader().getResource("CA.png").toString(), 129, CA_HEIGHT, false, false));
+		
 		fish.setImg(new Image(ClassLoader.getSystemClassLoader().getResource("fish.png").toString(), 300, 75, true, false));
 
+		int startPos = 560; //They should start together for realism ;)
+		
 		// Set base Capture area information
-		CA.setPos(862, -100);
+		CA.setPos(862, startPos); //OG: 862, -100
 		CA.setHeight((int) CA.getImg().getHeight());
 		CA.setWidth((int) CA.getImg().getWidth());
 		CA.setMaxH(687);
 		CA.setMinH(35);
 
 		// Set base fish information
-		fish.setPos(852, 560);
+		fish.setPos(852, startPos);
 		fish.setHeight((int) fish.getImg().getHeight());
 		fish.setWidth((int) fish.getImg().getWidth());
 		fish.setMaxH(687);
 		fish.setMinH(35);
-		
-		launch(args);
+
 	}
 
+	public static void launchGame() {
+		launch(args);	
+	}
 	
+	static final boolean useComms = false;
+	static int frameCount = 0;
+
 	public static void main(String[] args) throws Exception {
-		FishGame.args = args;
-		Comms comms = new Comms();
-		comms.start();
+		for(int i=0; i < dtInfo.length; i++) {
+			dtInfo[i] = 0;
+		}
+		
+		
+		if (useComms) {
+			FishGame.args = args;
+			Comms comms = new Comms();
+			comms.start();
+		}else {
+			startGame();
+			launchGame();
+		}
 	}
 
-	
 	// EveryOne
 	@Override
 	public void start(Stage stage) throws Exception {
@@ -232,7 +285,7 @@ public class FishGame extends Application {
 		// Credit for audio goes to: https://www.youtube.com/watch?v=xyA5c-ajXyg
 		// I edited the audio and made it loopable.
 		AudioClip atmosphericSound = new AudioClip(locationBK.toString());
-		
+
 		atmosphericSound.setCycleCount(AudioClip.INDEFINITE);
 		atmosphericSound.play(.1);
 		// Set stage title
@@ -252,21 +305,22 @@ public class FishGame extends Application {
 		root.getChildren().addAll(can);
 
 		// update the original fish and Capture area.
-		CA.update(0);
-		CA.show(gc);
-		fish.update(0);
-		fish.show(gc);
+//		CA.update(0);
+//		CA.show(gc);
+//		fish.update(0);
+//		fish.show(gc);
 		animPos = 5;
-
+		
 // ---------------------Get Mouse Events-------------------//
 		sc.setOnMousePressed(event -> {
 			if (event.getButton() == MouseButton.PRIMARY) {
 				// Depending on the current mode (see definitions), we set values and call
 				// functions Here.
 
+				//If the player is idle.
 				if (mode == -1) {
 					// Generate the random fish.
-					fishNum = (int) (Math.random() * (14));
+					fishNum = (int) (Math.random() * 14);
 					waitTime = (Math.random() * 5) + 2.5;
 					waitTime = (waitTime * 1000) + System.currentTimeMillis();
 					maxWaitTime = waitTime + MAXWAITTIMEHOLD;
@@ -277,8 +331,8 @@ public class FishGame extends Application {
 					animPos = 0;
 					mode = 0;
 					animTime = System.currentTimeMillis();
-
 				}
+				
 				// If the player left clicks within a time window set mode to 1.
 				// If the player misses the window (is too late), and the player clicks, set
 				// mode to 1.
@@ -286,14 +340,19 @@ public class FishGame extends Application {
 				// they can click again.
 				else if (mode == 0
 						&& (System.currentTimeMillis() >= waitTime && System.currentTimeMillis() <= maxWaitTime)) {
+					// Start the game!
 					mode = 1;
+
 				} else if (mode == 0 && (System.currentTimeMillis() <= waitTime)) {
+					// Pulled before the fish grabbed the bobber :(
 					animTime = System.currentTimeMillis();
 					animPos = 0;
 					fishImage = null;
 					fishName = null;
 					scaledFish = null;
 					mode = -1;
+
+					// If mode == lost fish or won fish.
 				} else if ((mode == 3 || mode == 2) && (System.currentTimeMillis() >= actualManditoryWait)) {
 					if (mode == 2) {
 
@@ -321,19 +380,26 @@ public class FishGame extends Application {
 // ----------------Animation Hub------------------//
 		// Instantiate the animation timer
 		new AnimationTimer() {
+			
+			
 			// This is essentially just a while loop.
 			@Override
 			public void handle(long now) {
-
-				// clear the screen.
-				gc.clearRect(0, 0, 1280, 720);
-
+				if(gamemode!=GameMode.Normal) {
+					mode = 1;
+				}
+				
 				if (mode == 3) {
+					// clear the screen.
+					gc.clearRect(0, 0, 1280, 720);
 					// Image that says "Game Over, you caught # fish". Closes after 5 seconds.
 					gc.drawImage(FISHLOSE, 0, 0);
 					fishImage = null;
-				}
-				if (mode == 2) {
+				}else if (mode == 2) {
+					// clear the screen.
+					gc.clearRect(0, 0, 1280, 720);
+
+					
 					// Animate the bobber being flung.
 					if (System.currentTimeMillis() >= animTime + (animPos * frameRate)) {
 						animPos++;
@@ -357,11 +423,15 @@ public class FishGame extends Application {
 					if (scaledFish != null && animPos < 5 && animPos >= 1) {
 						gc.drawImage(scaledFish, bobberPos[animPos - 1][0], bobberPos[animPos - 1][1]);
 					}
-				}
-				if (mode == 4) {
+				}else if (mode == 4) {
+					// clear the screen.
+					gc.clearRect(0, 0, 1280, 720);
+
 					gc.drawImage(GAMEOVER, 0, 0);
-				}
-				if (mode == 0) {
+				}else if (mode == 0) {
+					// clear the screen.
+					gc.clearRect(0, 0, 1280, 720);
+
 					if (System.currentTimeMillis() >= waitTime && firstNoise == true) {
 						bobberDown.play(1);
 						firstNoise = false;
@@ -377,8 +447,7 @@ public class FishGame extends Application {
 						maxWaitTime = waitTime + MAXWAITTIMEHOLD;
 						firstNoise = true;
 					}
-				}
-				if (mode == -1) {
+				}else if (mode == -1) {
 					if (System.currentTimeMillis() >= animTime + (animPos * frameRate)) {
 						animPos++;
 						animPos = (int) clamp(animPos, 0, 5);
@@ -388,25 +457,34 @@ public class FishGame extends Application {
 					} else {
 						gc.drawImage(castAnim[4 - animPos], 0, 0);
 					}
-				}
-				if (mode == 1) {
-					// Display the fish's difficulty (most likely removed in final version).
+				}else if (mode == 1) {
+					
+					if(framemode==FrameMode.FrameAtTime && precedFrame==false) {
+						return;
+					}else if(framemode==FrameMode.FrameAtTime && precedFrame==true) {
+						// clear the screen.
+						gc.clearRect(0, 0, 1280, 720);
+
+						precedFrame = false;
+						frameProccessed = false;
+					}
+					
 					gc.drawImage(MINIGAME, 0, 0);
 					// Generate time since last frame.
 					double deltaT = (now - lastTime) / 1000000000.0;
-					lastTime = now;
+
 
 					// Determine the fishes movement.
 					double newVel = detMove();
 
 					// Set the new fishes movement.
-					fish.setyVel(clamp(Math.abs(newVel) - DECRATE, MINFISH, MAXFISH) * ((newVel >= 0) ? 1 : -1));
+					fish.setyVel(clamp(Math.abs(newVel) - DECRATE * deltaT, MINFISH, MAXFISH) * ((newVel >= 0) ? 1 : -1));
 
 					// if the player is clicking the left mouse button the fish raises.
 					if (isClicked == true) {
-						CA.setyVel(clamp(CA.getyVel() + MOTOR, MINSPEED, MAXSPEED));
+						CA.setyVel(clamp(CA.getyVel() + MOTOR * deltaT, MINSPEED, MAXSPEED));
 					} else {
-						CA.setyVel(clamp(CA.getyVel() + GRAV, MINSPEED, MAXSPEED));
+						CA.setyVel(clamp(CA.getyVel() + GRAV * deltaT, MINSPEED, MAXSPEED));
 					}
 
 					// Update the fish and the Capture area in order to display its new position.
@@ -418,9 +496,16 @@ public class FishGame extends Application {
 
 					// determine if fish is inside the colliding area.
 					if (fish.collidingWith(CA)) {
-						myPoints += CAPRATEUP;
+						myPoints += CAPRATEUP * deltaT;
 					} else {
-						myPoints -= CAPRATEDOWN;
+						myPoints -= CAPRATEDOWN * deltaT;
+					}
+					
+					//clamp myPoints between 0 and 100
+					if(myPoints > CAPTUREPOINTS) {
+						myPoints = CAPTUREPOINTS;
+					}else if(myPoints < 0) {
+						myPoints = 0;
 					}
 
 					// The size of the bar.
@@ -429,34 +514,26 @@ public class FishGame extends Application {
 					gc.drawImage(bar, 751, 692, 64, -ySize);
 					// Handle capture/loss
 					if (myPoints >= CAPTUREPOINTS) {
+						//Fish was captured:
 						mode = 2;
 						animPos = 0;
 						animTime = System.currentTimeMillis();
 						fishCaught++;
-						if (fishCaught > recordFish) {
-							isRecord = true;
-							recordFish = fishCaught;
-							// Todo: Save the number.
-							saveGame();
-						}
 
 						myPoints = CAPTUREPOINTS / 2;
 						firstNoise = true;
 						actualManditoryWait = System.currentTimeMillis() + manditoryWait;
 						startGame();
-					} else if (myPoints <= 0) {
+					} else if (myPoints <= 0 && gamemode!=GameMode.SafePractice) {
+						//Fish was Lost.
 						startGame();
 						actualManditoryWait = System.currentTimeMillis() + manditoryWait;
 						// go into lose mode method
 						fishLost++;
-						if (fishLost >= 3 && playMode == 1) {
-							mode = 4;
-							actualManditoryWait = System.currentTimeMillis() + manditoryWait;
-						} else {
-							mode = 3;
-							myPoints = CAPTUREPOINTS / 2;
-							firstNoise = true;
-						}
+
+						mode = 3;
+						myPoints = CAPTUREPOINTS / 2;
+						firstNoise = true;
 					}
 				}
 				// This will try to make fish caught/fish lost display
@@ -465,16 +542,26 @@ public class FishGame extends Application {
 				gc.setFont(new Font("Timesnew Roman", 45));
 				gc.setFill(Color.LAWNGREEN);
 				gc.fillText("Caught: " + fishCaught, 10, 0);
+				
 				gc.setTextAlign(TextAlignment.RIGHT);
 				gc.setTextBaseline(VPos.TOP);
 				gc.setFill(Color.RED);
 				gc.fillText("Got Away: " + fishLost, 1270, 0);
 				gc.setFont(new Font("Timesnew Roman", 30));
+				
 				gc.setTextAlign(TextAlignment.LEFT);
 				gc.setTextBaseline(VPos.BOTTOM);
 				gc.setFill(Color.AQUAMARINE);
 				gc.fillText("Record Fish Caught: " + recordFish, 0, 720);
 
+				
+				gc.setTextAlign(TextAlignment.RIGHT);
+				gc.setTextBaseline(VPos.BOTTOM);
+				gc.setFill(Color.BLACK);
+				gc.setFont(new Font("Timesnew Roman", 10));
+				gc.fillText("FPS " + String.format("%.2f", lastFPS), 1270, 700);
+				gc.fillText("Frame " + frameCount, 1270, 720);
+				
 				if (isRecord) {
 					gc.setFont(new Font("Timesnew Roman", 20));
 					gc.setTextAlign(TextAlignment.RIGHT);
@@ -482,30 +569,37 @@ public class FishGame extends Application {
 					gc.setFill(Color.YELLOW);
 					gc.fillText("You have beaten the record!", 1270, 720);
 				}
-				// Update everything so it actually draws.
+				
+				
+				Double lastDT = (now - lastTime) / 1000000000;
+//				print(lastDT);
+				dtInfo[dtiIndex] = lastDT; //get the dt to be in milliseconds.
+				
+				//dtiIndex=4, startIdx = 0;
+				// dtiIndex=2, startIdx=3
+				int startIdx = (dtiIndex + 1) % dtInfo.length;
+				double sum = 0;
+				
+				for(int i = 0; i < dtInfo.length; i++) {
+					sum += dtInfo[(startIdx + i) % dtInfo.length];
+				}
+				
+				dtiIndex = (dtiIndex+1)%dtInfo.length;
+				
+				
+				
+				lastFPS = 1 / (sum/dtInfo.length);
+				
 				root.getChildren().setAll(can);
+				frameCount++;
+				lastTime = now;
+				
+				frameProccessed = true;
 			}
 		}.start();
+		//Update the frame count
 		// show everything.
 		stage.show();
-	}
-
-	public static boolean saveGame() {
-		String file = "record.txt";
-		boolean success = false;
-		try {
-			PrintWriter fw = new PrintWriter(file);
-
-			fw.write("" + recordFish);
-			fw.close();
-			success = true;
-
-		} catch (IOException ex) {
-			print("Something went wrong saving the record amount of fish.");
-			ex.printStackTrace();
-			success = false;
-		}
-		return success;
 	}
 
 	/*
@@ -524,12 +618,12 @@ public class FishGame extends Application {
 			// required to get, so we can have a relative time.
 			lt = cur;
 			// Milliseconds to wait.
-			ttc = ((Math.random()) * 7.5 / difficulty);
+			ttc = ((Math.random()) * 10 / difficulty);
 
 			// The rest of the method is just to make the fish movement feel balanced given
 			// its difficulty. Mult changes the direction.
 			int mult = -1;
-			if (Math.random() <= .25) {
+			if (Math.random() <= .025) {
 				mult = 1;
 			}
 			// Depending on the fishes current velocity, we change its velocity.
