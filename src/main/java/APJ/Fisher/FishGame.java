@@ -192,18 +192,17 @@ public class FishGame extends Application {
 				new Image(ClassLoader.getSystemClassLoader().getResource("Casting3.png").toString()),
 				new Image(ClassLoader.getSystemClassLoader().getResource("Casting4.png").toString()) };
 
-		MINIGAME = new Image(ClassLoader.getSystemClassLoader().getResource("Capture Area.png").toString(), 1280, 720,
-				true, false);
-		IDLE = new Image(ClassLoader.getSystemClassLoader().getResource("Ocean.png").toString(), 1280, 720, true,
-				false);
+		MINIGAME = new Image(ClassLoader.getSystemClassLoader().getResource("Capture Area.png").toString(), 1280, 720,true, false);
+		
+		IDLE = new Image(ClassLoader.getSystemClassLoader().getResource("Ocean.png").toString(), 1280, 720, true,false);
 
-		CA.setImg(new Image(ClassLoader.getSystemClassLoader().getResource("CA.png").toString(), 129, CA_HEIGHT, false,
-				false));
-		fish.setImg(
-				new Image(ClassLoader.getSystemClassLoader().getResource("fish.png").toString(), 300, 75, true, false));
+		
+		CA.setImg(new Image(ClassLoader.getSystemClassLoader().getResource("CA.png").toString(), 129, CA_HEIGHT, false, false));
+		
+		fish.setImg(new Image(ClassLoader.getSystemClassLoader().getResource("fish.png").toString(), 300, 75, true, false));
 
 		// Set base Capture area information
-		CA.setPos(862, -100);
+		CA.setPos(102, -100); //OG: 862, -100
 		CA.setHeight((int) CA.getImg().getHeight());
 		CA.setWidth((int) CA.getImg().getWidth());
 		CA.setMaxH(687);

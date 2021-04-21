@@ -71,7 +71,7 @@ public class Sprite
 		//Sets position
 		//parameters: toX = x position. toY = y position.
 		//returns: none.
-	public void setPos(double toX,double toY) {
+	public void setPos(double toX, double toY) {
 		this.x = toX;
 		this.y = toY;
 	}
@@ -123,6 +123,7 @@ public class Sprite
 	{
 		this.height = height;
 	}
+	
 	public double getX( )
 	{
 		return x;
