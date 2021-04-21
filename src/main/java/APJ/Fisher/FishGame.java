@@ -171,16 +171,25 @@ public class FishGame extends Application {
 	}
 	
 	public enum GameMode{
-		Normal,
-		SafePractice, //You cannot lose a fish and there is no intermediate state of casting/etc. Once a fish is caught a new fish is generated.
-		Practice      //Like SafePractice but you can lose fish.
+		Normal,       //The "regular" game (this version still has stuff removed.)
+		SafePractice, //You cannot lose a fish and there is no intermediate state of casting/etc. Once a fish is caught a new fish is generated. (the game starts with a cought fish)
+		Practice      //Like SafePractice but you can lose fish. Once a fish is lost a new fish is generated.
 	}
 	
-	private static FrameMode framemode = FrameMode.FrameAtTime;
-	private static GameMode gamemode = GameMode.SafePractice;
+	
+	
+	
+	
+	private static final FrameMode framemode = FrameMode.PersonPlay;
+	private static final GameMode gamemode = GameMode.SafePractice;
 	
 	private static boolean precedFrame = false; // Set to true to proceed to the next frame in gamemode FrameAtTime.
 	private static boolean frameProccessed = false;
+	
+	
+	
+	
+	
 	
 	public static synchronized void nextFrame() {
 		precedFrame = true;
@@ -296,10 +305,10 @@ public class FishGame extends Application {
 		root.getChildren().addAll(can);
 
 		// update the original fish and Capture area.
-		CA.update(0);
-		CA.show(gc);
-		fish.update(0);
-		fish.show(gc);
+//		CA.update(0);
+//		CA.show(gc);
+//		fish.update(0);
+//		fish.show(gc);
 		animPos = 5;
 		
 // ---------------------Get Mouse Events-------------------//
@@ -376,7 +385,9 @@ public class FishGame extends Application {
 			// This is essentially just a while loop.
 			@Override
 			public void handle(long now) {
-				
+				if(gamemode!=GameMode.Normal) {
+					mode = 1;
+				}
 				
 				if (mode == 3) {
 					// clear the screen.
@@ -489,6 +500,13 @@ public class FishGame extends Application {
 					} else {
 						myPoints -= CAPRATEDOWN * deltaT;
 					}
+					
+					//clamp myPoints between 0 and 100
+					if(myPoints > CAPTUREPOINTS) {
+						myPoints = CAPTUREPOINTS;
+					}else if(myPoints < 0) {
+						myPoints = 0;
+					}
 
 					// The size of the bar.
 					double ySize = (myPoints / CAPTUREPOINTS) * CAPHEIGHT;
@@ -506,7 +524,7 @@ public class FishGame extends Application {
 						firstNoise = true;
 						actualManditoryWait = System.currentTimeMillis() + manditoryWait;
 						startGame();
-					} else if (myPoints <= 0) {
+					} else if (myPoints <= 0 && gamemode!=GameMode.SafePractice) {
 						//Fish was Lost.
 						startGame();
 						actualManditoryWait = System.currentTimeMillis() + manditoryWait;
