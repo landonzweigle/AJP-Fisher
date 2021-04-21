@@ -58,9 +58,9 @@ public class FishGame extends Application {
 	// fishes min speed.
 	public static double MINSPEED = -1000;
 	// Rate that the bar raises.
-	public static double CAPRATEUP = .25;
+	public static double CAPRATEUP = 25;
 	// rate the bar lowers.
-	public static double CAPRATEDOWN = .5;
+	public static double CAPRATEDOWN = 50;
 	// the time required to change fishes direction
 	public static double ttc;
 	// The last time of the frame.
@@ -161,6 +161,12 @@ public class FishGame extends Application {
 
 	static String[] args;
 
+	static double lastFPS = 0;
+	static double[] dtInfo = new double[10]; // hold the last 10 delta times.
+	static int dtiIndex = 0;
+	
+	
+	
 // End changed variables.
 
 	// Landon Zweigle
@@ -210,18 +216,28 @@ public class FishGame extends Application {
 		fish.setMaxH(687);
 		fish.setMinH(35);
 
-		launch(args);
 	}
 
+	public static void launchGame() {
+		launch(args);	
+	}
+	
 	static final boolean useComms = false;
+	static int frameCount = 0;
 
 	public static void main(String[] args) throws Exception {
+		for(int i=0; i < dtInfo.length; i++) {
+			dtInfo[i] = 0;
+		}
+		
+		
 		if (useComms) {
 			FishGame.args = args;
 			Comms comms = new Comms();
 			comms.start();
 		}else {
 			startGame();
+			launchGame();
 		}
 	}
 
@@ -338,6 +354,10 @@ public class FishGame extends Application {
 				// clear the screen.
 				gc.clearRect(0, 0, 1280, 720);
 
+				//Display total Frame count in the bottom right:
+				
+				
+				
 				if (mode == 3) {
 					// Image that says "Game Over, you caught # fish". Closes after 5 seconds.
 					gc.drawImage(FISHLOSE, 0, 0);
@@ -400,11 +420,10 @@ public class FishGame extends Application {
 					}
 				}
 				if (mode == 1) {
-					// Display the fish's difficulty (most likely removed in final version).
 					gc.drawImage(MINIGAME, 0, 0);
 					// Generate time since last frame.
 					double deltaT = (now - lastTime) / 1000000000.0;
-					lastTime = now;
+
 
 					// Determine the fishes movement.
 					double newVel = detMove();
@@ -428,9 +447,9 @@ public class FishGame extends Application {
 
 					// determine if fish is inside the colliding area.
 					if (fish.collidingWith(CA)) {
-						myPoints += CAPRATEUP;
+						myPoints += CAPRATEUP * deltaT;
 					} else {
-						myPoints -= CAPRATEDOWN;
+						myPoints -= CAPRATEDOWN * deltaT;
 					}
 
 					// The size of the bar.
@@ -439,6 +458,7 @@ public class FishGame extends Application {
 					gc.drawImage(bar, 751, 692, 64, -ySize);
 					// Handle capture/loss
 					if (myPoints >= CAPTUREPOINTS) {
+						//Fish was captured:
 						mode = 2;
 						animPos = 0;
 						animTime = System.currentTimeMillis();
@@ -449,6 +469,7 @@ public class FishGame extends Application {
 						actualManditoryWait = System.currentTimeMillis() + manditoryWait;
 						startGame();
 					} else if (myPoints <= 0) {
+						//Fish was Lost.
 						startGame();
 						actualManditoryWait = System.currentTimeMillis() + manditoryWait;
 						// go into lose mode method
@@ -465,16 +486,26 @@ public class FishGame extends Application {
 				gc.setFont(new Font("Timesnew Roman", 45));
 				gc.setFill(Color.LAWNGREEN);
 				gc.fillText("Caught: " + fishCaught, 10, 0);
+				
 				gc.setTextAlign(TextAlignment.RIGHT);
 				gc.setTextBaseline(VPos.TOP);
 				gc.setFill(Color.RED);
 				gc.fillText("Got Away: " + fishLost, 1270, 0);
 				gc.setFont(new Font("Timesnew Roman", 30));
+				
 				gc.setTextAlign(TextAlignment.LEFT);
 				gc.setTextBaseline(VPos.BOTTOM);
 				gc.setFill(Color.AQUAMARINE);
 				gc.fillText("Record Fish Caught: " + recordFish, 0, 720);
 
+				
+				gc.setTextAlign(TextAlignment.RIGHT);
+				gc.setTextBaseline(VPos.BOTTOM);
+				gc.setFill(Color.BLACK);
+				gc.setFont(new Font("Timesnew Roman", 10));
+				gc.fillText("FPS " + String.format("%.2f", lastFPS), 1270, 700);
+				gc.fillText("Frame " + frameCount, 1270, 720);
+				
 				if (isRecord) {
 					gc.setFont(new Font("Timesnew Roman", 20));
 					gc.setTextAlign(TextAlignment.RIGHT);
@@ -482,10 +513,33 @@ public class FishGame extends Application {
 					gc.setFill(Color.YELLOW);
 					gc.fillText("You have beaten the record!", 1270, 720);
 				}
-				// Update everything so it actually draws.
+				
+				
+				Double lastDT = (now - lastTime) / 1000000000;
+//				print(lastDT);
+				dtInfo[dtiIndex] = lastDT; //get the dt to be in milliseconds.
+				
+				//dtiIndex=4, startIdx = 0;
+				// dtiIndex=2, startIdx=3
+				int startIdx = (dtiIndex + 1) % dtInfo.length;
+				double sum = 0;
+				
+				for(int i = 0; i < dtInfo.length; i++) {
+					sum += dtInfo[(startIdx + i) % dtInfo.length];
+				}
+				
+				dtiIndex = (dtiIndex+1)%dtInfo.length;
+				
+				
+				
+				lastFPS = 1 / (sum/dtInfo.length);
+				
 				root.getChildren().setAll(can);
+				frameCount++;
+				lastTime = now;
 			}
 		}.start();
+		//Update the frame count
 		// show everything.
 		stage.show();
 	}

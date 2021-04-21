@@ -19,7 +19,7 @@ public class Comms extends Thread{
 	public static Comms singleton;
 	
 	public final int port = 13337;
-	ServerSocket listener;
+	ServerSocket listener;		
 	
 	DataInputStream dIn;
 	DataOutputStream dOut;
@@ -52,7 +52,8 @@ public class Comms extends Thread{
 			FishGame.print(inMsg);
 
 			if(inMsg.equals("Hello Java :D")) {
-				FishGame.startGame(); //Start the game.				
+				FishGame.startGame(); //Start the game.	
+				FishGame.launchGame();
 			}
 			
 			
