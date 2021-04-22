@@ -1,7 +1,6 @@
 package APJ.Fisher;
 
-import java.io.IOException;
-import java.io.PrintWriter;
+
 import java.net.URL;
 import java.util.Scanner;
 
@@ -150,6 +149,8 @@ public class FishGame extends Application {
 	// from 1 and up (recommended to be less than 10) Difficulty of fish.
 	public static int difficulty = 7;
 
+	public static boolean canPlay = false;
+	
 	// The current mode of the game (see full definitions above)
 	// -1 = Mode_idle_int.
 	// 0 = Mode_idle_out.
@@ -164,6 +165,9 @@ public class FishGame extends Application {
 	static double lastFPS = 0;
 	static double[] dtInfo = new double[10]; // hold the last 10 delta times.
 	static int dtiIndex = 0;
+	static int frameCount = 0;
+
+	
 	
 	public enum FrameMode{
 		PersonPlay,   //The "regular" game (this version still has stuff removed.)
@@ -180,11 +184,11 @@ public class FishGame extends Application {
 	
 	
 	
-	private static final FrameMode framemode = FrameMode.PersonPlay;
-	private static final GameMode gamemode = GameMode.SafePractice;
+	public static final FrameMode framemode = FrameMode.FrameAtTime;
+	public static final GameMode gamemode = GameMode.SafePractice;
 	
-	private static boolean precedFrame = false; // Set to true to proceed to the next frame in gamemode FrameAtTime.
-	private static boolean frameProccessed = false;
+	private static volatile boolean precedFrame = false; // Set to true to proceed to the next frame in gamemode FrameAtTime.
+	public static volatile boolean frameProccessed = true;
 	
 	
 	
@@ -193,6 +197,7 @@ public class FishGame extends Application {
 	
 	public static synchronized void nextFrame() {
 		precedFrame = true;
+		frameProccessed = false;
 	}
 	
 	public static synchronized boolean isFrameProccessed() {
@@ -214,9 +219,6 @@ public class FishGame extends Application {
 		GAMEOVER = new Image(ClassLoader.getSystemClassLoader().getResource("Game Over0.png").toString(), 1280, 720,
 				true, false);
 		bar = new Image(ClassLoader.getSystemClassLoader().getResource("bar.png").toString(), 64, 0, false, false);
-
-		Image testImage = new Image(ClassLoader.getSystemClassLoader().getResource("Casting0.png").toString());
-		print("casting0 --> " + testImage.getUrl());
 
 		castAnim = new Image[] { new Image(ClassLoader.getSystemClassLoader().getResource("Casting0.png").toString()),
 				new Image(ClassLoader.getSystemClassLoader().getResource("Casting1.png").toString()),
@@ -248,32 +250,46 @@ public class FishGame extends Application {
 		fish.setWidth((int) fish.getImg().getWidth());
 		fish.setMaxH(687);
 		fish.setMinH(35);
-
+		canPlay = true;
 	}
 
 	public static void launchGame() {
 		launch(args);	
 	}
+
 	
-	static final boolean useComms = false;
-	static int frameCount = 0;
+	
+	static final boolean useComms = true;
 
 	public static void main(String[] args) throws Exception {
 		for(int i=0; i < dtInfo.length; i++) {
 			dtInfo[i] = 0;
 		}
 		
-		
 		if (useComms) {
 			FishGame.args = args;
 			Comms comms = new Comms();
 			comms.start();
+			
+			comms.isAlive();
+			while(!canPlay) {
+				if(!comms.isAlive()) {
+					throw new Exception("comms died while waiting to init.");
+				}
+			}
+			
+			if(comms.isAlive()) {
+				launchGame();
+			}
+			
 		}else {
 			startGame();
 			launchGame();
 		}
 	}
 
+	
+	
 	// EveryOne
 	@Override
 	public void start(Stage stage) throws Exception {
@@ -385,6 +401,20 @@ public class FishGame extends Application {
 			// This is essentially just a while loop.
 			@Override
 			public void handle(long now) {
+				if(framemode==FrameMode.FrameAtTime && precedFrame==false) {
+					return;
+				}else if(framemode==FrameMode.PersonPlay || (framemode==FrameMode.FrameAtTime && precedFrame==true)) {
+					print("progressing Frame " + frameCount);
+					// clear the screen.
+					gc.clearRect(0, 0, 1280, 720);
+
+					precedFrame = false;
+					frameProccessed = false;
+				}
+				
+				
+				
+				
 				if(gamemode!=GameMode.Normal) {
 					mode = 1;
 				}
@@ -457,18 +487,7 @@ public class FishGame extends Application {
 					} else {
 						gc.drawImage(castAnim[4 - animPos], 0, 0);
 					}
-				}else if (mode == 1) {
-					
-					if(framemode==FrameMode.FrameAtTime && precedFrame==false) {
-						return;
-					}else if(framemode==FrameMode.FrameAtTime && precedFrame==true) {
-						// clear the screen.
-						gc.clearRect(0, 0, 1280, 720);
-
-						precedFrame = false;
-						frameProccessed = false;
-					}
-					
+				}else if (mode == 1) {					
 					gc.drawImage(MINIGAME, 0, 0);
 					// Generate time since last frame.
 					double deltaT = (now - lastTime) / 1000000000.0;
@@ -536,6 +555,7 @@ public class FishGame extends Application {
 						firstNoise = true;
 					}
 				}
+				
 				// This will try to make fish caught/fish lost display
 				gc.setTextAlign(TextAlignment.LEFT);
 				gc.setTextBaseline(VPos.TOP);
