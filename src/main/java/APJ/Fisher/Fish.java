@@ -25,8 +25,14 @@ public class Fish{
 
 	public int getDiff( int index )
 	{
-
-		return 5;//dif[index];
+		boolean override = true;
+		int _ret;
+		if(override) {
+			_ret = 5;
+		}else {
+			_ret = dif[index];
+		}
+		return _ret;
 	}
 
 	public String getIMG( int index )

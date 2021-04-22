@@ -294,7 +294,6 @@ public class FishGame extends Application {
 	@Override
 	public void start(Stage stage) throws Exception {
 		URL location = ClassLoader.getSystemClassLoader().getResource("FishBobberDown.wav");
-		System.out.println("fish down --> " + location);
 		AudioClip bobberDown = new AudioClip(location.toString());
 
 		URL locationBK = ClassLoader.getSystemClassLoader().getResource("Ocean Sounds.wav");
@@ -403,13 +402,8 @@ public class FishGame extends Application {
 			public void handle(long now) {
 				if(framemode==FrameMode.FrameAtTime && precedFrame==false) {
 					return;
-				}else if(framemode==FrameMode.PersonPlay || (framemode==FrameMode.FrameAtTime && precedFrame==true)) {
-					print("progressing Frame " + frameCount);
-					// clear the screen.
-					gc.clearRect(0, 0, 1280, 720);
-
+				}else if(framemode==FrameMode.FrameAtTime && precedFrame==true) {
 					precedFrame = false;
-					frameProccessed = false;
 				}
 				
 				

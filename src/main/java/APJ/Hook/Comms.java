@@ -110,7 +110,7 @@ public class Comms extends Thread{
 		
 		while(recvInt()==10) {
 			//Wait until frame processed:
-			while(!FishGame.frameProccessed) {}
+			while(!FishGame.isFrameProccessed()) {}
 			
 			//tell python the frame has been processed:
 			sendInt(10);
