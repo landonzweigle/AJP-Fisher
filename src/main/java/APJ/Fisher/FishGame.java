@@ -149,7 +149,12 @@ public class FishGame extends Application {
 	// from 1 and up (recommended to be less than 10) Difficulty of fish.
 	public static int difficulty = 7;
 
-	public static boolean canPlay = false;
+	public static volatile boolean canPlay = false;
+	
+	public static synchronized void stopPlaying() {
+		canPlay = false;
+	}
+	
 	
 	private static volatile boolean reelIn = false;
 	
@@ -186,9 +191,9 @@ public class FishGame extends Application {
 	
 	
 	
-	static final boolean useComms = false;
+	static final boolean useComms = true;
 	
-	public static final FrameMode framemode = FrameMode.PersonPlay;
+	public static final FrameMode framemode = FrameMode.FrameAtTime;
 	public static final GameMode gamemode = GameMode.SafePractice;
 	
 	private static volatile boolean precedFrame = false; // Set to true to proceed to the next frame in gamemode FrameAtTime.
@@ -325,21 +330,19 @@ public class FishGame extends Application {
 		root.getChildren().addAll(can);
 
 		// update the original fish and Capture area.
-//		CA.update(0);
-//		CA.show(gc);
-//		fish.update(0);
-//		fish.show(gc);
 		animPos = 5;
 		
 // ---------------------Get Mouse Events-------------------//
 		sc.setOnMousePressed(event -> {
 			if (event.getButton() == MouseButton.PRIMARY) {
 				// if the player is left clicking, set isClicked to true so the fish can raise.
+				reelIn = true;
 				isClicked = true;
 			}
 		});
 		sc.setOnMouseReleased(event -> {
 			isClicked = false;
+			reelIn = false;
 		});
 
 // ----------------Animation Hub------------------//
@@ -450,7 +453,7 @@ public class FishGame extends Application {
 					fish.setyVel(clamp(Math.abs(newVel) - DECRATE * deltaT, MINFISH, MAXFISH) * ((newVel >= 0) ? 1 : -1));
 
 					// if the player is clicking the left mouse button the fish raises.
-					if (isClicked == true) {
+					if (reelIn == true) {
 						CA.setyVel(clamp(CA.getyVel() + MOTOR * deltaT, MINSPEED, MAXSPEED));
 					} else {
 						CA.setyVel(clamp(CA.getyVel() + GRAV * deltaT, MINSPEED, MAXSPEED));
@@ -483,7 +486,7 @@ public class FishGame extends Application {
 					gc.drawImage(bar, 751, 692, 64, -ySize);
 					// Handle capture/loss
 					if (myPoints >= CAPTUREPOINTS) {
-						//Fish was captured:
+						//Captured the fish successfully:
 						mode = 2;
 						animPos = 0;
 						animTime = System.currentTimeMillis();

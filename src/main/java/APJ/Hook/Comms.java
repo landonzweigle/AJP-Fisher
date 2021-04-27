@@ -95,6 +95,7 @@ public class Comms extends Thread{
 				return;
 			}
 		} catch (IOException e) {
+			FishGame.stopPlaying();
 			e.printStackTrace();
 		}
 	}
@@ -104,11 +105,12 @@ public class Comms extends Thread{
 	//Tell python the state.
 	//Step FishGame to next frame.
 	//repeat.	
-	private void FrameByFramePlayGame() throws IOException {
-
-		
-		
-		while(recvInt()==10) {
+	private void FrameByFramePlayGame() throws IOException {	
+		int recvMsg;
+		while((recvMsg=recvInt())!=0) {
+			if(recvMsg==10) {}else if(recvMsg==5) {
+				FishGame.startGame();
+			}
 			//Wait until frame processed:
 			while(!FishGame.isFrameProccessed()) {}
 			
@@ -120,7 +122,7 @@ public class Comms extends Thread{
 			//Send curState.toString to python.
 			//or
 			//Send several integers.
-			
+			  
 			//Pros and cons:
 			//Pro for sending string:
 			//Very flexible.

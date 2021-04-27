@@ -1,6 +1,4 @@
 #!/bin/sh
 
-
-buildDir=./build/classes/java/main/APJ/Fisher/FishGame
-cd ./build/classes/java/main/
-java -cp $buildDir FishGame
+#./gradlew run &
+#python3 ./AutoFisher-Python/AutoFisher.py
