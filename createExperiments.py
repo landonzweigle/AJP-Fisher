@@ -25,10 +25,11 @@ class ExperimentsList():
     def __init__(self):
         self.internalDict = {}
 
-    def addExperiment(self, framesPerTrial, nTrials, n_epochs, learningRate, gamma):
+    def addExperiment(self, framesPerTrial, nTrials, nHiddens, n_epochs, learningRate, gamma):
         newExperiment = {("expr%d"%self.experimentCount):{
             "framesPerTrial":framesPerTrial,
             "nTrials":nTrials,
+            "nHiddens": nHiddens,
             "n_epochs":n_epochs,
             "learningRate":learningRate,
             "gamma":gamma
@@ -44,8 +45,8 @@ def main():
     # experiments = {"exp1": {"some key": "some value", "some col": "some value 2"}}
     experiments = ExperimentsList()
 
-    experiments.addExperiment(1,2,3,4,5)
-    experiments.addExperiment(6,7,8,9,10)
+    experiments.addExperiment(1,2,[10],3,4,5)
+    experiments.addExperiment(6,7,[10,10,10],8,9,10)
 
 
 
