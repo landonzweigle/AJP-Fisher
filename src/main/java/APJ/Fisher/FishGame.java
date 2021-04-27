@@ -6,7 +6,7 @@ import java.util.Scanner;
 
 import APJ.Hook.Comms;
 import javafx.application.Application;
-
+import javafx.event.EventHandler;
 import javafx.animation.AnimationTimer;
 import javafx.geometry.VPos;
 import javafx.scene.Group;
@@ -20,6 +20,8 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
+
 
 public class FishGame extends Application {
 
@@ -152,6 +154,7 @@ public class FishGame extends Application {
 	public static volatile boolean canPlay = false;
 	
 	public static synchronized void stopPlaying() {
+		isRunning = false;
 		canPlay = false;
 	}
 	
@@ -199,19 +202,29 @@ public class FishGame extends Application {
 	private static volatile boolean precedFrame = false; // Set to true to proceed to the next frame in gamemode FrameAtTime.
 	public static volatile boolean frameProccessed = true;
 	
+	public static volatile boolean isRunning = false;
 	
+	public static void throwIfNotRunning() throws Exception {
+		if(isRunning) {
+			
+		}else {
+			throw new Exception("The Stage is no longer running :(");
+		}
+	}
 	
-	
-	public static synchronized void setReelIn(boolean shouldReelIn) {
+	public static synchronized void setReelIn(boolean shouldReelIn) throws Exception {
+		throwIfNotRunning();
 		reelIn = shouldReelIn;
 	}
 	
-	public static synchronized void nextFrame() {
+	public static synchronized void nextFrame() throws Exception {
+		throwIfNotRunning();
 		precedFrame = true;
 		frameProccessed = false;
 	}
 	
-	public static synchronized boolean isFrameProccessed() {
+	public static synchronized boolean isFrameProccessed() throws Exception {
+		throwIfNotRunning();
 		return frameProccessed;
 	}
 	
@@ -265,6 +278,7 @@ public class FishGame extends Application {
 	}
 
 	public static void launchGame() {
+		isRunning = true;
 		launch(args);	
 	}
 
@@ -303,6 +317,7 @@ public class FishGame extends Application {
 	// EveryOne
 	@Override
 	public void start(Stage stage) throws Exception {
+		isRunning = true;
 		URL location = ClassLoader.getSystemClassLoader().getResource("FishBobberDown.wav");
 		AudioClip bobberDown = new AudioClip(location.toString());
 
@@ -331,7 +346,17 @@ public class FishGame extends Application {
 
 		// update the original fish and Capture area.
 		animPos = 5;
+//----------------------Get exit Eventss-------------------//
+		stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
+			@Override
+			public void handle(WindowEvent we) {
+				canPlay = false;
+				isRunning = false;
+				print("closing window.");
+			}
+		});
 		
+	
 // ---------------------Get Mouse Events-------------------//
 		sc.setOnMousePressed(event -> {
 			if (event.getButton() == MouseButton.PRIMARY) {
@@ -352,6 +377,7 @@ public class FishGame extends Application {
 			@Override
 			public void handle(long now) {
 				if(canPlay==false) {
+					isRunning = false;
 					stop();
 				}
 

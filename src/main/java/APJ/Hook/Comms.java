@@ -94,7 +94,7 @@ public class Comms extends Thread{
 				FishGame.print("Startup message didn't match :(");
 				return;
 			}
-		} catch (IOException e) {
+		} catch (Exception e) {
 			FishGame.stopPlaying();
 			e.printStackTrace();
 		}
@@ -105,7 +105,7 @@ public class Comms extends Thread{
 	//Tell python the state.
 	//Step FishGame to next frame.
 	//repeat.	
-	private void FrameByFramePlayGame() throws IOException {	
+	private void FrameByFramePlayGame() throws Exception {	
 		int recvMsg;
 		while((recvMsg=recvInt())!=0) {
 			if(recvMsg==10) {}else if(recvMsg==5) {
