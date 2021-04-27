@@ -5,7 +5,7 @@ from numpy.core.defchararray import split
 import numpy as np, pandas as pds
 
 modesExcpected = {"TRAIN": ("FrameAtTime", "SafePractice"),"TEST": ("PersonPlay", "Practice"),"NORMAL": ("PersonPlay", "Normal")}
-ExperimentsCSV = "../Experiments/out.csv"
+ExperimentsCSV = "../Experiments/experiments.csv"
 
 def sampleSTD(values, avg):
     sqrSum = sum([(val - avg)**2 for val in values])
@@ -162,6 +162,9 @@ def main():
         print("Loading experiment %s"%fileToLoad)
     elif(len(sys.argv) > 2):
         raise Exception("Only one argument can be supplied.")
+
+    expDF = pds.read_csv(ExperimentsCSV)
+    print(expDF)
 
     JPC = JPComms.JPComms(modesExcpected["TRAIN"])
 
