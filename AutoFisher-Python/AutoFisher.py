@@ -5,6 +5,7 @@ from numpy.core.defchararray import split
 import numpy as np, pandas as pds
 
 modesExcpected = {"TRAIN": ("FrameAtTime", "SafePractice"),"TEST": ("PersonPlay", "Practice"),"NORMAL": ("PersonPlay", "Normal")}
+ExperimentsCSV = "../Experiments/out.csv"
 
 def sampleSTD(values, avg):
     sqrSum = sum([(val - avg)**2 for val in values])
@@ -153,12 +154,15 @@ def runFrameByFrame(JPC):
 
 
 def main():
-    try:
-        fileToLoad = int(sys.argv[1])
-    except ValueError:
-        raise ValueError("Expected argument to be of type int.")
-    print("Loading experiment %s"%fileToLoad)
-    
+    if(len(sys.argv)==2):
+        try:
+            fileToLoad = int(sys.argv[1])
+        except ValueError:
+            raise ValueError("Expected argument to be of type int.")
+        print("Loading experiment %s"%fileToLoad)
+    elif(len(sys.argv) > 2):
+        raise Exception("Only one argument can be supplied.")
+
     JPC = JPComms.JPComms(modesExcpected["TRAIN"])
 
     print("\n-----------------------------------------------------")
