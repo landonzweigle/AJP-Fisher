@@ -1,6 +1,7 @@
 import numpy as np
-import Optimizers
-import sys
+from numpy.core.defchararray import array
+import Optimizers as optimizers
+import sys, random
 
 ######################################################################
 # class NeuralNetwork()
@@ -70,24 +71,7 @@ class RLNeuralNetwork():
         if len(self.error_trace) > 0:
             return self.__repr__() + f' trained for {len(self.error_trace)} epochs, final training error {self.error_trace[-1]:.4f}'
 
-    def train(self, X, T, n_epochs, learning_rate, method='sgd', verbose=True):
-        '''
-train:
-  X: n_samples x n_inputs matrix of input samples, one per row
-  T: n_samples x n_outputs matrix of target output values, one sample per row
-  n_epochs: number of passes to take through all samples updating weights each pass
-  learning_rate: factor controlling the step size of each update
-  method: is either 'sgd' or 'adam'
-        '''
-
-        # Setup standardization parameters
-        if self.Xmeans is None:
-            self.Xmeans = X.mean(axis=0)
-            self.Xstds = X.std(axis=0)
-            self.Xstds[self.Xstds == 0] = 1  # So we don't divide by zero when standardizing
-            self.Tmeans = T.mean(axis=0)
-            self.Tstds = T.std(axis=0)
-
+    def train(self, X, T, n_epochs, learning_rate, method='sgd', verbose=True): #I removed the Xmeans check to force pre-calculation.
         # Standardize X and T
         X = (X - self.Xmeans) / self.Xstds
         T = (T - self.Tmeans) / self.Tstds
@@ -183,17 +167,24 @@ train:
 
 
 
+    def createStandards(self, Xmeans, Xstds, Tmeans, Tstds):
+        self.Xmeans = np.array(Xmeans)
+        self.Xstds = np.array(Xstds)
+        self.Tmeans = np.array(Tmeans)
+        self.Tstds = np.array(Tstds)
+
+
     def EpsilonGreedyUse(self, state):   
         if np.random.uniform() < self.Epsilon:
             action = np.random.choice(self.validActions)
             
         else:
             actions_randomly_ordered = random.sample(self.validActions, len(self.validActions))
-            Qs = [self.use(np.array([[state, a]])) for a in actions_randomly_ordered]
-            ai = np.argmax(Qs)
+            Qs = [self.use(np.array([state+[a]])) for a in actions_randomly_ordered]
+            ai = np.argmin(Qs)
             action = actions_randomly_ordered[ai]
             
-        Q = self.use(np.array([[state, action]]))
+        Q = self.use(np.array([state + [action]]))
         
         return action, Q   # return the chosen action and Q(state, action)
 
@@ -211,7 +202,16 @@ train:
 
     @staticmethod
     def getReinforcement(state):
-        return 1
+        deltaP, deltaV = state
+        if(deltaP==0 and deltaV==0):
+            return 0
+        elif(deltaP==0 and deltaV!=0):
+            return 1
+        elif(deltaP!=0 and deltaV<0):
+            return 2
+        elif(deltaP!=0 and deltaV==0):
+            return 3
+        return 100
 
 
 
