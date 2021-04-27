@@ -163,8 +163,11 @@ def main():
     elif(len(sys.argv) > 2):
         raise Exception("Only one argument can be supplied.")
 
-    expDF = pds.read_csv(ExperimentsCSV)
+    expDF = pds.read_csv(ExperimentsCSV,index_col=0)
+    epxr = expDF.iloc[fileToLoad]
+    
     print(expDF)
+    print(epxr)
 
     JPC = JPComms.JPComms(modesExcpected["TRAIN"])
 
