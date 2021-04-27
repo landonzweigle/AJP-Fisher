@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import pandas as pds, os
 from pathlib import Path
 
@@ -42,13 +44,11 @@ class ExperimentsList():
 
 
 def main():
-    # experiments = {"exp1": {"some key": "some value", "some col": "some value 2"}}
     experiments = ExperimentsList()
 
-    experiments.addExperiment(1,2,[10],3,4,5)
-    experiments.addExperiment(6,7,[10,10,10],8,9,10)
-
-
+    # framesPerTrial, nTrials, nHiddens, n_epochs, learningRate, gamma
+    experiments.addExperiment(150, 1000, [25], 120, 0.01, 0.8)
+    experiments.addExperiment(150, 1000, [100], 120, 0.01, 0.8)
 
     csvPath.mkdir(parents=True, exist_ok=True) #make the dir if it doesnt exist.
     df = experiments.toDict()

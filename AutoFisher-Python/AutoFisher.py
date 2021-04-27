@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 from os import sep
 import RLNN, math, sys
 import JavaPythonComms as JPComms
@@ -87,7 +89,6 @@ def runFrameByFrame(JPC):
 
         #get the state:
         stateStr = JPC.recvStr()
-        print("frame %s current state: %s" % (frameCount, stateStr))
         
         #################
         # MAIN LOOP
@@ -97,8 +98,6 @@ def runFrameByFrame(JPC):
         state = stateStr[1:-1].split(',')
         state = list([int(val.split(':')[-1]) for val in state])
         s = state
-        print("converted state:", state)
-        # s,a = state
 
         step = frameCount % framesPerTrial
         # sn = next_state_f(s, a)        # Update state, sn, from s and a
@@ -107,9 +106,13 @@ def runFrameByFrame(JPC):
         X[step, :] = s + [a]
         R[step, 0] = rn
         Qn[step, 0] = qn
+
+        print("frame %s current state: %s" % (frameCount, stateStr))
+        print("reinforcement: " + str(rn))
+        print("taking action: " + str(a))
+        print("-----")
         
         #tell java to make this action:
-        print("taking action: " + str(a))
         JPC.sendInt(int(a))
 
 
@@ -164,24 +167,21 @@ def main():
         except ValueError:
             raise ValueError("Expected argument to be of type int.")
         print("Loading experiment %s"%fileToLoad)
+
+        expDF = pds.read_csv(ExperimentsCSV,index_col=0)
+        expr = expDF.iloc[fileToLoad]
+
+        framesPerTrial = expr["framesPerTrial"]
+        nTrials = expr["nTrials"]
+        nHidden = [int(varr) for varr in expr["nHiddens"][1:-1].split(',')]
+        n_epochs = expr["n_epochs"]
+        learningRate = expr["learningRate"]
+        gamma = expr["gamma"]
+
+        print(expr)
+
     elif(len(sys.argv) > 2):
         raise Exception("Only one argument can be supplied.")
-
-    expDF = pds.read_csv(ExperimentsCSV,index_col=0)
-    expr = expDF.iloc[fileToLoad]
-
-    #framesPerTrial, nTrials, n_epochs, learningRate, gamma
-    framesPerTrial = expr["framesPerTrial"]
-    nTrials = expr["nTrials"]
-    n_epochs = expr["n_epochs"]
-    learningRate = expr["learningRate"]
-    gamma = expr["gamma"]
-
-    nHidden = [int(varr) for varr in expr["nHiddens"][1:-1].split(',')]
-    
-    print(expDF)
-    print(expr)
-    print()
 
     JPC = JPComms.JPComms(modesExcpected["TRAIN"])
 
