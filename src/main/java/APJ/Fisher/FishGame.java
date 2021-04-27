@@ -124,7 +124,7 @@ public class FishGame extends Application {
 	// maditory wait time.
 	public double manditoryWait = 1000.0;
 	// manditory wait time added to the current time (later on).
-	public double actualManditoryWait = 0.0;
+	public static double actualManditoryWait = 0.0;
 
 	// position to display the name
 	public static int[] namePos = new int[] { 769, 400 };
@@ -150,6 +150,9 @@ public class FishGame extends Application {
 	public static int difficulty = 7;
 
 	public static boolean canPlay = false;
+	
+	private static volatile boolean reelIn = false;
+	
 	
 	// The current mode of the game (see full definitions above)
 	// -1 = Mode_idle_int.
@@ -183,8 +186,9 @@ public class FishGame extends Application {
 	
 	
 	
+	static final boolean useComms = false;
 	
-	public static final FrameMode framemode = FrameMode.FrameAtTime;
+	public static final FrameMode framemode = FrameMode.PersonPlay;
 	public static final GameMode gamemode = GameMode.SafePractice;
 	
 	private static volatile boolean precedFrame = false; // Set to true to proceed to the next frame in gamemode FrameAtTime.
@@ -193,7 +197,9 @@ public class FishGame extends Application {
 	
 	
 	
-	
+	public static synchronized void setReelIn(boolean shouldReelIn) {
+		reelIn = shouldReelIn;
+	}
 	
 	public static synchronized void nextFrame() {
 		precedFrame = true;
@@ -259,7 +265,6 @@ public class FishGame extends Application {
 
 	
 	
-	static final boolean useComms = true;
 
 	public static void main(String[] args) throws Exception {
 		for(int i=0; i < dtInfo.length; i++) {
@@ -329,61 +334,6 @@ public class FishGame extends Application {
 // ---------------------Get Mouse Events-------------------//
 		sc.setOnMousePressed(event -> {
 			if (event.getButton() == MouseButton.PRIMARY) {
-				// Depending on the current mode (see definitions), we set values and call
-				// functions Here.
-
-				//If the player is idle.
-				if (mode == -1) {
-					// Generate the random fish.
-					fishNum = (int) (Math.random() * 14);
-					waitTime = (Math.random() * 5) + 2.5;
-					waitTime = (waitTime * 1000) + System.currentTimeMillis();
-					maxWaitTime = waitTime + MAXWAITTIMEHOLD;
-					fishImage = new Image(ourFish.getIMG(fishNum), 255, 255, true, false);
-					scaledFish = new Image(ourFish.getIMG(fishNum), 100, 100, true, false);
-					difficulty = ourFish.getDiff(fishNum);
-					fishName = ourFish.getName(fishNum);
-					animPos = 0;
-					mode = 0;
-					animTime = System.currentTimeMillis();
-				}
-				
-				// If the player left clicks within a time window set mode to 1.
-				// If the player misses the window (is too late), and the player clicks, set
-				// mode to 1.
-				// If the player just won or lost, wait manditoryWait amount of seconds untill
-				// they can click again.
-				else if (mode == 0
-						&& (System.currentTimeMillis() >= waitTime && System.currentTimeMillis() <= maxWaitTime)) {
-					// Start the game!
-					mode = 1;
-
-				} else if (mode == 0 && (System.currentTimeMillis() <= waitTime)) {
-					// Pulled before the fish grabbed the bobber :(
-					animTime = System.currentTimeMillis();
-					animPos = 0;
-					fishImage = null;
-					fishName = null;
-					scaledFish = null;
-					mode = -1;
-
-					// If mode == lost fish or won fish.
-				} else if ((mode == 3 || mode == 2) && (System.currentTimeMillis() >= actualManditoryWait)) {
-					if (mode == 2) {
-
-						animPos = 5;
-
-					} else if (mode == 3) {
-						animPos = 0;
-					}
-					animTime = System.currentTimeMillis();
-					fishImage = null;
-					fishName = null;
-					scaledFish = null;
-					mode = -1;
-				} else if (mode == 4 && System.currentTimeMillis() >= actualManditoryWait + 2500) {
-					System.exit(-1);
-				}
 				// if the player is left clicking, set isClicked to true so the fish can raise.
 				isClicked = true;
 			}
@@ -395,18 +345,24 @@ public class FishGame extends Application {
 // ----------------Animation Hub------------------//
 		// Instantiate the animation timer
 		new AnimationTimer() {
-			
-			
-			// This is essentially just a while loop.
+			// This is essentially just a while loop controlled by javaFX
 			@Override
 			public void handle(long now) {
+				if(canPlay==false) {
+					stop();
+				}
+
 				if(framemode==FrameMode.FrameAtTime && precedFrame==false) {
 					return;
 				}else if(framemode==FrameMode.FrameAtTime && precedFrame==true) {
 					precedFrame = false;
 				}
 				
-				
+				if(useComms) {
+					handleReel(reelIn);
+				}else {
+					handleReel(isClicked);
+				}
 				
 				
 				if(gamemode!=GameMode.Normal) {
@@ -608,6 +564,7 @@ public class FishGame extends Application {
 				frameCount++;
 				lastTime = now;
 				
+				reelIn = false;
 				frameProccessed = true;
 			}
 		}.start();
@@ -616,6 +573,66 @@ public class FishGame extends Application {
 		stage.show();
 	}
 
+	public static void handleReel(boolean isRealing) {
+		
+		// Depending on the current mode (see definitions), we set values and call
+		// functions Here.
+		if(isRealing) {
+			//If the player is idle.
+			if (mode == -1) {
+				// Generate the random fish.
+				fishNum = (int) (Math.random() * 14);
+				waitTime = (Math.random() * 5) + 2.5;
+				waitTime = (waitTime * 1000) + System.currentTimeMillis();
+				maxWaitTime = waitTime + MAXWAITTIMEHOLD;
+				fishImage = new Image(ourFish.getIMG(fishNum), 255, 255, true, false);
+				scaledFish = new Image(ourFish.getIMG(fishNum), 100, 100, true, false);
+				difficulty = ourFish.getDiff(fishNum);
+				fishName = ourFish.getName(fishNum);
+				animPos = 0;
+				mode = 0;
+				animTime = System.currentTimeMillis();
+			}
+			
+			// If the player left clicks within a time window set mode to 1.
+			// If the player misses the window (is too late), and the player clicks, set
+			// mode to 1.
+			// If the player just won or lost, wait manditoryWait amount of seconds untill
+			// they can click again.
+			else if (mode == 0 && (System.currentTimeMillis() >= waitTime && System.currentTimeMillis() <= maxWaitTime)) {
+				// Start the game!
+				mode = 1;
+	
+			} else if (mode == 0 && (System.currentTimeMillis() <= waitTime)) {
+				// Pulled before the fish grabbed the bobber :(
+				animTime = System.currentTimeMillis();
+				animPos = 0;
+				fishImage = null;
+				fishName = null;
+				scaledFish = null;
+				mode = -1;
+	
+				// If mode == lost fish or won fish.
+			} else if ((mode == 3 || mode == 2) && (System.currentTimeMillis() >= actualManditoryWait)) {
+				if (mode == 2) {
+	
+					animPos = 5;
+	
+				} else if (mode == 3) {
+					animPos = 0;
+				}
+				animTime = System.currentTimeMillis();
+				fishImage = null;
+				fishName = null;
+				scaledFish = null;
+				mode = -1;
+			} else if (mode == 4 && System.currentTimeMillis() >= actualManditoryWait + 2500) {
+				System.exit(-1);
+			}
+		}
+	}
+	
+	
 	/*
 	 * Landon Zweigle Determines the fishes next velocity using its difficulty.
 	 * parameters: none returns: the fishes "new" velocity *
