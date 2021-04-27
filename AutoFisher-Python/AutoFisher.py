@@ -33,8 +33,8 @@ reinforcements = [0,1,2,3]
 meanRein = 1.5
 stdRein = 1.118
 
-Xmeans = [meanH, meanV, meanAct]
-Xstds = [stdH, stdV, stdAct]
+Xmeans = [meanH, meanH, meanV, meanV, meanAct]
+Xstds = [stdH, stdH, stdV, stdV, stdAct]
 Tmean = [meanRein]
 Tstd = [stdRein]
 ####################
@@ -54,7 +54,7 @@ epsilon_decay =  np.exp(np.log(finalEpsilon) / nTrials)
 gamma = 0.8
 
 
-n_inputs = 3 #{deltaP, deltaV, action}
+n_inputs = 5 #{deltaP, deltaV, action} or {bobberPos, fishPos, bobberVel, fishVel, action}
 DQN = None
 ####################
 
@@ -79,6 +79,12 @@ def runFrameByFrame(JPC):
 
     frameCount = 1
     msgToSend = 10
+
+    initStateStr = JPC.recvStr()[1:-1].split(',');
+    initState = list([int(val.split(':')[-1]) for val in initStateStr])
+    s = initState
+    a, _ign = DQN.EpsilonGreedyUse(s)
+
     while(frameCount <= FramesToPlay):
         JPC.sendInt(msgToSend)
 
@@ -97,17 +103,18 @@ def runFrameByFrame(JPC):
         #state is in the formate <deltaP, deltaV>
         state = stateStr[1:-1].split(',')
         state = list([int(val.split(':')[-1]) for val in state])
-        s = state
+        sn = state
 
         step = frameCount % framesPerTrial
         # sn = next_state_f(s, a)        # Update state, sn, from s and a
         rn = DQN.getReinforcement(state)    # Calculate resulting reinforcement
-        a, qn = DQN.EpsilonGreedyUse(state)  # choose next action
+        an, qn = DQN.EpsilonGreedyUse(state)  # choose next action
         X[step, :] = s + [a]
         R[step, 0] = rn
         Qn[step, 0] = qn
+        s, a = sn, an
 
-        print("frame %s current state: %s" % (frameCount, stateStr))
+        print("frame %d of Trial %d current state: %s" % (frameCount, trialTracker, stateStr))
         print("reinforcement: " + str(rn))
         print("taking action: " + str(a))
         print("-----")
@@ -129,7 +136,8 @@ def runFrameByFrame(JPC):
                 r_last_2 += np.sum(R)
            
             epsilon *= epsilon_decay
-            DQN.train(X, R + gamma * Qn, n_epochs, learningRate, method='sgd', verbose=False)
+
+            DQN.train(X, T, n_epochs, learningRate, method='sgd', verbose=False)
 
             #Reset trackers:
             X = np.zeros((framesPerTrial, DQN.n_inputs))
@@ -138,6 +146,9 @@ def runFrameByFrame(JPC):
 
 
             msgToSend = 5
+            s = initState
+            a, _ign = DQN.EpsilonGreedyUse(s)
+
         else:
             msgToSend = 10
 

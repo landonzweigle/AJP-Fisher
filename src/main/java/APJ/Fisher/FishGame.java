@@ -187,7 +187,7 @@ public class FishGame extends Application {
 	
 	public enum GameMode{
 		Normal,       //The "regular" game (this version still has stuff removed.)
-		SafePractice, //You cannot lose a fish and there is no intermediate state of casting/etc. Once a fish is caught a new fish is generated. (the game starts with a cought fish)
+		SafePractice, //You cannot lose or catch fish and there is no intermediate state of casting/etc. Once a fish is caught a new fish is generated. (the game starts with a cought fish)
 		Practice      //Like SafePractice but you can lose fish. Once a fish is lost a new fish is generated.
 	}
 	
@@ -263,13 +263,17 @@ public class FishGame extends Application {
 		
 		// Set base Capture area information
 		CA.setPos(862, startPos); //OG: 862, -100
+		CA.setyVel(0);
 		CA.setHeight((int) CA.getImg().getHeight());
 		CA.setWidth((int) CA.getImg().getWidth());
 		CA.setMaxH(687);
 		CA.setMinH(35);
 
+		print("bobber img height: " + CA.getHeight());
+		
 		// Set base fish information
 		fish.setPos(852, startPos);
+		fish.setyVel(0);
 		fish.setHeight((int) fish.getImg().getHeight());
 		fish.setWidth((int) fish.getImg().getWidth());
 		fish.setMaxH(687);
@@ -511,7 +515,7 @@ public class FishGame extends Application {
 					// draw the bar.
 					gc.drawImage(bar, 751, 692, 64, -ySize);
 					// Handle capture/loss
-					if (myPoints >= CAPTUREPOINTS) {
+					if (myPoints >= CAPTUREPOINTS && gamemode!=GameMode.SafePractice) {
 						//Captured the fish successfully:
 						mode = 2;
 						animPos = 0;
