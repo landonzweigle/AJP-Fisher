@@ -28,8 +28,6 @@ class JPComms:
                 else:
                     print("Ran out of connection attempts")
                     raise lastExep
-
-
         self.startupSeq()
 
 

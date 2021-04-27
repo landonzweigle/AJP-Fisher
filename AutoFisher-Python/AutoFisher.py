@@ -54,6 +54,9 @@ DQN = RLNN.RLNeuralNetwork(validActions, Epsilon, n_inputs, [100], 1)
 DQN.createStandards(Xmeans, Xstds, Tmean, Tstd)
 ####################
 
+
+
+
 def runFrameByFrame(JPC):
     FramesToPlay = framesPerTrial * nTrials
     trialTracker = 0
@@ -149,15 +152,15 @@ def runFrameByFrame(JPC):
 
 
 
-
-
-
-
-
-
-
 def main():
+    try:
+        fileToLoad = int(sys.argv[1])
+    except ValueError:
+        raise ValueError("Expected argument to be of type int.")
+    print("Loading experiment %s"%fileToLoad)
+    
     JPC = JPComms.JPComms(modesExcpected["TRAIN"])
+
     print("\n-----------------------------------------------------")
     r, rLast2 = runFrameByFrame(JPC)
 
