@@ -1,3 +1,4 @@
+from os import sep
 import RLNN, math, sys
 import JavaPythonComms as JPComms
 
@@ -59,16 +60,16 @@ DQN.createStandards(Xmeans, Xstds, Tmean, Tstd)
 
 
 def runFrameByFrame(JPC):
+    print("ExperimentArgs:")
+    print(framesPerTrial, nTrials, n_epochs, learningRate, gamma,sep='\n')
     FramesToPlay = framesPerTrial * nTrials
     trialTracker = 0
 
+    print()
 
     X = np.zeros((framesPerTrial, DQN.n_inputs))
     R = np.zeros((framesPerTrial, 1))
     Qn = np.zeros((framesPerTrial, 1))
-
-    # s = initial_state_f()
-    # a, _ = DQN.EpsilonGreedyUse(DQN, s, validActions, epsilon)
 
     r_sum = 0
     r_last_2 = 0
@@ -154,6 +155,9 @@ def runFrameByFrame(JPC):
 
 
 def main():
+    global framesPerTrial, nTrials, n_epochs, learningRate, gamma
+
+
     if(len(sys.argv)==2):
         try:
             fileToLoad = int(sys.argv[1])
@@ -164,10 +168,20 @@ def main():
         raise Exception("Only one argument can be supplied.")
 
     expDF = pds.read_csv(ExperimentsCSV,index_col=0)
-    epxr = expDF.iloc[fileToLoad]
+    expr = expDF.iloc[fileToLoad]
+
+    #framesPerTrial, nTrials, n_epochs, learningRate, gamma
+    framesPerTrial = expr["framesPerTrial"]
+    nTrials = expr["nTrials"]
+    n_epochs = expr["n_epochs"]
+    learningRate = expr["learningRate"]
+    gamma = expr["gamma"]
+
+
     
     print(expDF)
-    print(epxr)
+    print(expr)
+    print()
 
     JPC = JPComms.JPComms(modesExcpected["TRAIN"])
 
