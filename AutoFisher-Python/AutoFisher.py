@@ -42,6 +42,7 @@ Tstd = [stdRein]
 framesPerTrial = 200 #amount in frames
 nTrials = 100
 
+nHidden = [100]
 n_epochs = 50
 learningRate = 0.01
 
@@ -52,8 +53,7 @@ gamma = 0.8
 
 
 n_inputs = 3 #{deltaP, deltaV, action}
-DQN = RLNN.RLNeuralNetwork(validActions, Epsilon, n_inputs, [100], 1)
-DQN.createStandards(Xmeans, Xstds, Tmean, Tstd)
+DQN = None
 ####################
 
 
@@ -61,7 +61,7 @@ DQN.createStandards(Xmeans, Xstds, Tmean, Tstd)
 
 def runFrameByFrame(JPC):
     print("ExperimentArgs:")
-    print(framesPerTrial, nTrials, n_epochs, learningRate, gamma,sep='\n')
+    print(framesPerTrial, nTrials, nHidden, n_epochs, learningRate, gamma,sep='\n')
     FramesToPlay = framesPerTrial * nTrials
     trialTracker = 0
 
@@ -155,7 +155,7 @@ def runFrameByFrame(JPC):
 
 
 def main():
-    global framesPerTrial, nTrials, n_epochs, learningRate, gamma
+    global framesPerTrial, nTrials, n_epochs, learningRate, gamma, DQN, nHidden
 
 
     if(len(sys.argv)==2):
@@ -177,13 +177,16 @@ def main():
     learningRate = expr["learningRate"]
     gamma = expr["gamma"]
 
-
+    nHidden = [int(varr) for varr in expr["nHiddens"][1:-1].split(',')]
     
     print(expDF)
     print(expr)
     print()
 
     JPC = JPComms.JPComms(modesExcpected["TRAIN"])
+
+    DQN = RLNN.RLNeuralNetwork(validActions, Epsilon, n_inputs, nHidden, 1)
+    DQN.createStandards(Xmeans, Xstds, Tmean, Tstd)
 
     print("\n-----------------------------------------------------")
     r, rLast2 = runFrameByFrame(JPC)
