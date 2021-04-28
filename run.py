@@ -1,5 +1,7 @@
 import sys
 import createExperiments
+sys.path.insert(1, 'AutoFisher-Python/')
+import AutoFisher
 
 def main(runnerName):
     if not runnerName == "keegan" and not runnerName == "landon":
@@ -7,11 +9,15 @@ def main(runnerName):
 
     print("Running experiments for", runnerName)
 
-    # Create the csv files
+    print("Writing the experiments to", createExperiments.csvFullPath)
     createExperiments.main(runnerName)
 
-    # For each line in the csv file:
-
+    print("Reading experiments from", createExperiments.csvFullPath)
+    csvFile = open(createExperiments.csvFullPath)
+    for i,line in enumerate(csvFile):
+        if i != 0:
+            print("Running experiment:", line)
+            AutoFisher.main(i-1)
 
 if __name__ == "__main__":
     runnerName = sys.argv[1]
