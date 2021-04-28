@@ -2,6 +2,7 @@ import math
 import numpy as np
 from numpy.core.defchararray import array
 import Optimizers as optimizers
+import pickle
 import sys, random
 
 ######################################################################
@@ -167,6 +168,13 @@ class RLNeuralNetwork():
         return Y * self.Tstds + self.Tmeans
 
 
+
+    def dump(self, dumpTo):
+        pickle.dump(self, open(dumpTo))
+
+    @staticmethod
+    def load(dumpFile):
+        return pickle.load(dumpFile)
 
     def createStandards(self, Xmeans, Xstds, Tmeans, Tstds):
         self.Xmeans = np.array(Xmeans)
