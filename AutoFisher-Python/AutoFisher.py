@@ -1,14 +1,20 @@
 #!/usr/bin/python3
 
-from os import sep
+import os
+from pathlib import Path
+
 import RLNN, math, sys
 import JavaPythonComms as JPComms
-
 from numpy.core.defchararray import split
 import numpy as np, pandas as pds
 
 modesExcpected = {"TRAIN": ("FrameAtTime", "SafePractice"),"TEST": ("PersonPlay", "Practice"),"NORMAL": ("PersonPlay", "Normal")}
 ExperimentsCSV = "../Experiments/experiments.csv"
+
+expDir = "../Experiments/"
+expNtmp = "/EXP_%d/"
+
+myDir = "."
 
 def sampleSTD(values, avg):
     sqrSum = sum([(val - avg)**2 for val in values])
@@ -151,9 +157,6 @@ def runFrameByFrame(JPC):
 
         else:
             msgToSend = 10
-
-
-        
         #################
         frameCount += 1
 
@@ -168,31 +171,26 @@ def runFrameByFrame(JPC):
 
 
 
-def main():
-    global framesPerTrial, nTrials, n_epochs, learningRate, gamma, DQN, nHidden
+def main(expIndex):
+    global framesPerTrial, nTrials, n_epochs, learningRate, gamma, DQN, nHidden, myDir
 
+    myDir = Path(os.path.join(expDir, expNtmp%expIndex))
+    myDir.mkdir(parents=True, exist_ok=True)
+        
 
-    if(len(sys.argv)==2):
-        try:
-            fileToLoad = int(sys.argv[1])
-        except ValueError:
-            raise ValueError("Expected argument to be of type int.")
-        print("Loading experiment %s"%fileToLoad)
+    print("Loading experiment %s"%expIndex)
 
-        expDF = pds.read_csv(ExperimentsCSV,index_col=0)
-        expr = expDF.iloc[fileToLoad]
+    expDF = pds.read_csv(ExperimentsCSV,index_col=0)
+    expr = expDF.iloc[expIndex]
 
-        framesPerTrial = expr["framesPerTrial"]
-        nTrials = expr["nTrials"]
-        nHidden = [int(varr) for varr in expr["nHiddens"][1:-1].split(',')]
-        n_epochs = expr["n_epochs"]
-        learningRate = expr["learningRate"]
-        gamma = expr["gamma"]
+    framesPerTrial = expr["framesPerTrial"]
+    nTrials = expr["nTrials"]
+    nHidden = [int(varr) for varr in expr["nHiddens"][1:-1].split(',')]
+    n_epochs = expr["n_epochs"]
+    learningRate = expr["learningRate"]
+    gamma = expr["gamma"]
 
-        print(expr)
-
-    elif(len(sys.argv) > 2):
-        raise Exception("Only one argument can be supplied.")
+    print(expr)
 
     JPC = JPComms.JPComms(modesExcpected["TRAIN"])
 
@@ -204,6 +202,16 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+
+    if(len(sys.argv)==2):
+        try:
+            expIndex = int(sys.argv[1])
+        except ValueError:
+            raise ValueError("Expected argument to be of type int.")
+
+    elif(len(sys.argv) > 2):
+        raise Exception("Only one argument can be supplied.")
+
+    main(expIndex)
     
 
