@@ -194,10 +194,10 @@ public class FishGame extends Application {
 	
 	
 	
-	static final boolean useComms = true;
+	static final boolean useComms = false;
 	
-	public static final FrameMode framemode = FrameMode.FrameAtTime;
-	public static final GameMode gamemode = GameMode.SafePractice;
+	public static final FrameMode framemode = FrameMode.PersonPlay;
+	public static final GameMode gamemode = GameMode.Normal;
 	
 	private static volatile boolean precedFrame = false; // Set to true to proceed to the next frame in gamemode FrameAtTime.
 	public static volatile boolean frameProccessed = true;

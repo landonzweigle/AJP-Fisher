@@ -47,7 +47,7 @@ def main():
     experiments = ExperimentsList()
 
     # framesPerTrial, nTrials, nHiddens, n_epochs, learningRate, gamma
-    experiments.addExperiment(150, 1000, [25], 120, 0.01, 0.8)
+    experiments.addExperiment(150, 5000, [25, 25], 120, 0.01, 0.8)
     experiments.addExperiment(150, 1000, [100], 120, 0.01, 0.8)
 
     csvPath.mkdir(parents=True, exist_ok=True) #make the dir if it doesnt exist.

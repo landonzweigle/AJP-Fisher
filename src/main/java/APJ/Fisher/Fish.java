@@ -17,7 +17,7 @@ public class Fish{
 		this.dif = new int[ ] { 10, 8, 6, 1, 5, 7, 3, 4, 6, 7, 2, 9, 4, 6};
 		this.imgs = new String[ ] { "fish_king-chrimson.png","fish_dangledook-trout.png","fish_skew-fish.png","fish_catpiscis.png","fish_triplicata-trianlge-bass.png","fish_kugona-fish.png","fish_magacaa.png","fish_padon-fish.png","fish_artyom-trout.png","fish_mutant-carp.png","fish_schmetterling-fish.png","fish_verstehen-verwirrt-rybe-squid.png","fish_videospieler.png","fish_oncreatieve-minnow.png"};
 	}
-	
+
 	public String getName( int index )
 	{
 		return name[index];
@@ -25,7 +25,7 @@ public class Fish{
 
 	public int getDiff( int index )
 	{
-		boolean override = true;
+		boolean override = false;
 		int _ret;
 		if(override) {
 			_ret = 5;
