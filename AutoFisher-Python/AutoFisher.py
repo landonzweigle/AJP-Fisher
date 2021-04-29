@@ -182,7 +182,11 @@ def runFrameByFrame(JPC):
 
 
 def saveResults(R, R_last2):
-    
+    toSave = "results.csv"
+    out = os.path.join(myDir,toSave)
+    data = [nTrials, framesPerTrial, n_epochs, nHidden, gamma, learningRate, R, R_last2]
+    df = pds.DataFrame(columns=["NTrials", "frames/trial", "n_epochs", "hidden layers", "gamma", "learning rate", "R", "R last 2"])
+    df.to_csv(out)
 
 
 def saveLastNActionStatePairs(nToSave, actionStatePairs):
@@ -193,27 +197,28 @@ def saveLastNActionStatePairs(nToSave, actionStatePairs):
 
 
 
-def main(expIndex):
+def main(expIndex=None):
     global framesPerTrial, nTrials, n_epochs, learningRate, gamma, DQN, nHidden, myDir
-    tempPath = os.path.join(expDir, expNtmp%expIndex)
-    print(tempPath)
-    myDir = Path(tempPath)
-    myDir.mkdir(parents=True, exist_ok=True)
-        
+    if(expIndex):
+        tempPath = os.path.join(expDir, expNtmp%expIndex)
+        print(tempPath)
+        myDir = Path(tempPath)
+        myDir.mkdir(parents=True, exist_ok=True)
+            
 
-    print("Loading experiment %s"%expIndex)
+        print("Loading experiment %s"%expIndex)
 
-    expDF = pds.read_csv(ExperimentsCSV,index_col=0)
-    expr = expDF.iloc[expIndex]
+        expDF = pds.read_csv(ExperimentsCSV,index_col=0)
+        expr = expDF.iloc[expIndex]
 
-    framesPerTrial = expr["framesPerTrial"]
-    nTrials = expr["nTrials"]
-    nHidden = [int(varr) for varr in expr["nHiddens"][1:-1].split(',')]
-    n_epochs = expr["n_epochs"]
-    learningRate = expr["learningRate"]
-    gamma = expr["gamma"]
+        framesPerTrial = expr["framesPerTrial"]
+        nTrials = expr["nTrials"]
+        nHidden = [int(varr) for varr in expr["nHiddens"][1:-1].split(',')]
+        n_epochs = expr["n_epochs"]
+        learningRate = expr["learningRate"]
+        gamma = expr["gamma"]
 
-    print(expr)
+        print(expr)
 
     JPC = JPComms.JPComms(modesExcpected["TRAIN"])
 
@@ -225,7 +230,7 @@ def main(expIndex):
 
 
 if __name__ == "__main__":
-
+    expIndex = None
     if(len(sys.argv)==2):
         try:
             expIndex = int(sys.argv[1])
