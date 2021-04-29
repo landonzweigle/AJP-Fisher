@@ -178,8 +178,8 @@ public class FishGame extends Application {
 	static int dtiIndex = 0;
 	static int frameCount = 0;
 
-	
-	
+
+
 	public enum FrameMode{
 		PersonPlay,   //The "regular" game (this version still has stuff removed.)
 		FrameAtTime,  //For training a model. Waits until a specified even to process the next frame.
@@ -194,10 +194,10 @@ public class FishGame extends Application {
 	
 	
 	
-	static final boolean useComms = false;
+	static final boolean useComms = true;
 	
-	public static final FrameMode framemode = FrameMode.PersonPlay;
-	public static final GameMode gamemode = GameMode.Normal;
+	public static final FrameMode framemode = FrameMode.FrameAtTime;
+	public static final GameMode gamemode = GameMode.SafePractice;
 	
 	private static volatile boolean precedFrame = false; // Set to true to proceed to the next frame in gamemode FrameAtTime.
 	public static volatile boolean frameProccessed = true;

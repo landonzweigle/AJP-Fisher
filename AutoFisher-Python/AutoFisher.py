@@ -11,8 +11,10 @@ import numpy as np, pandas as pds
 modesExcpected = {"TRAIN": ("FrameAtTime", "SafePractice"),"TEST": ("PersonPlay", "Practice"),"NORMAL": ("PersonPlay", "Normal")}
 ExperimentsCSV = "../Experiments/experiments.csv"
 
-expDir = "../Experiments/"
-expNtmp = "/EXP_%d/"
+expDir = "../Experiments"
+expNtmp = "EXP_%d/"
+
+RLNNDumpName = "RLNN.dump"
 
 myDir = "."
 
@@ -91,6 +93,9 @@ def runFrameByFrame(JPC):
     s = initState
     a, _ign = DQN.EpsilonGreedyUse(s)
 
+    meanRein = []
+    pastStateActions = []
+
     while(frameCount <= FramesToPlay):
         JPC.sendInt(msgToSend)
 
@@ -120,6 +125,9 @@ def runFrameByFrame(JPC):
         Qn[step, 0] = qn
         s, a = sn, an
 
+        stateAction = s + a
+        pastStateActions.append(stateAction)
+
         print("frame %d of Trial %d current state: %s" % (frameCount, trialTracker, stateStr))
         print("reinforcement: " + str(rn))
         print("taking action: " + str(a))
@@ -137,9 +145,13 @@ def runFrameByFrame(JPC):
             trialTracker += 1
 
             T = R + gamma * Qn
-            r_sum += np.sum(R)
+            curSome = np.sum(R)
+            r_sum += curSome
+
+            meanRein.append(r_sum / len(R))
+
             if trialTracker > nTrials - 3:
-                r_last_2 += np.sum(R)
+                r_last_2 += curSome
            
             epsilon *= epsilon_decay
 
@@ -159,22 +171,33 @@ def runFrameByFrame(JPC):
             msgToSend = 10
         #################
         frameCount += 1
+    dumpDir = os.path.join(myDir, "DQN.dump")
+    DQN.dump(dumpDir)
+
+    saveLastNActionStatePairs(20,pastStateActions)
+    saveResults(r_sum / (nTrials * framesPerTrial), r_last_2 / (2 * framesPerTrial))
 
     JPC.sendInt(0)
-    return r_sum / (nTrials * framesPerTrial), r_last_2 / (2 * framesPerTrial)
+    # return r_sum / (nTrials * framesPerTrial), r_last_2 / (2 * framesPerTrial)
 
 
+def saveResults(R, R_last2):
+    
 
 
-
-
+def saveLastNActionStatePairs(nToSave, actionStatePairs):
+    toSave = "ActionState.csv"
+    out = os.path.join(myDir,toSave)
+    df = pds.DataFrame(actionStatePairs[-nToSave:])
+    df.to_csv(out)
 
 
 
 def main(expIndex):
     global framesPerTrial, nTrials, n_epochs, learningRate, gamma, DQN, nHidden, myDir
-
-    myDir = Path(os.path.join(expDir, expNtmp%expIndex))
+    tempPath = os.path.join(expDir, expNtmp%expIndex)
+    print(tempPath)
+    myDir = Path(tempPath)
     myDir.mkdir(parents=True, exist_ok=True)
         
 

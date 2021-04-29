@@ -170,7 +170,7 @@ class RLNeuralNetwork():
 
 
     def dump(self, dumpTo):
-        pickle.dump(self, open(dumpTo))
+        pickle.dump(self, open(dumpTo, "wb"))
 
     @staticmethod
     def load(dumpFile):
