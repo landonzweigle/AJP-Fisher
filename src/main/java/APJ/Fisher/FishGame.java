@@ -154,6 +154,7 @@ public class FishGame extends Application {
 	public static volatile boolean canPlay = false;
 	
 	public static synchronized void stopPlaying() {
+		print("ending");
 		isRunning = false;
 		canPlay = false;
 	}
@@ -268,8 +269,6 @@ public class FishGame extends Application {
 		CA.setWidth((int) CA.getImg().getWidth());
 		CA.setMaxH(687);
 		CA.setMinH(35);
-
-		print("bobber img height: " + CA.getHeight());
 		
 		// Set base fish information
 		fish.setPos(852, startPos);
@@ -380,8 +379,10 @@ public class FishGame extends Application {
 			// This is essentially just a while loop controlled by javaFX
 			@Override
 			public void handle(long now) {
-				if(canPlay==false) {
+				if(canPlay==false || isRunning == false) {
+					print("something killed the loop");
 					isRunning = false;
+					stage.fireEvent(new WindowEvent(stage, WindowEvent.WINDOW_CLOSE_REQUEST));
 					stop();
 				}
 

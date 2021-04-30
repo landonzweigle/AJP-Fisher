@@ -148,6 +148,7 @@ public class Comms extends Thread{
 			
 			FishGame.nextFrame();
 		}
+		FishGame.print("Python ended");
 	}
 	
 	

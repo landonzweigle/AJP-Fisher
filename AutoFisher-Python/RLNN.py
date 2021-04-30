@@ -224,13 +224,11 @@ class RLNeuralNetwork():
             if(vSign < 0):
                 #moving away and colliding
                 return 1
-            elif (vSign > 0):
+            elif (vSign >= 0):
                 #moving together and colliding
                 return 0
-            else:
-                #not moving and colliding
-                return 0
             return 100
+
         else:
             relPosVelSign = bobberVel * relPos
             if(relPosVelSign < 0):
@@ -242,24 +240,3 @@ class RLNeuralNetwork():
             else:
                 #not moving and not colliding
                 return 3
-
-
-
-            return 100
-        
-        
-        
-        # deltaP, deltaV = state
-        # if(deltaP==0 and deltaV==0):
-        #     return 0
-        # elif(deltaP==0 and deltaV!=0):
-        #     return 1
-        # elif(deltaP!=0 and deltaV<0):
-        #     return 2
-        # elif(deltaP!=0 and deltaV==0):
-        #     return 3
-        # return 100
-
-
-
-

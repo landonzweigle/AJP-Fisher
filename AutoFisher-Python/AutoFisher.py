@@ -16,7 +16,10 @@ expNtmp = "EXP_%d/"
 
 RLNNDumpName = "RLNN.dump"
 
-myDir = "."
+myDir = Path(os.path.join(expDir, "default/"))
+doDebug = False
+
+
 
 def sampleSTD(values, avg):
     sqrSum = sum([(val - avg)**2 for val in values])
@@ -49,8 +52,8 @@ Tstd = [stdRein]
 #SPECIFIC ML VARS:
 ####################
 
-framesPerTrial = 200 #amount in frames
-nTrials = 100
+framesPerTrial = 50 #amount in frames
+nTrials = 1
 
 nHidden = [100]
 n_epochs = 50
@@ -70,12 +73,12 @@ DQN = None
 
 
 def runFrameByFrame(JPC):
-    print("ExperimentArgs:")
-    print(framesPerTrial, nTrials, nHidden, n_epochs, learningRate, gamma,sep='\n')
+    debug("ExperimentArgs:")
+    debug(framesPerTrial, nTrials, nHidden, n_epochs, learningRate, gamma,sep='\n')
     FramesToPlay = framesPerTrial * nTrials
     trialTracker = 0
 
-    print()
+    debug()
 
     X = np.zeros((framesPerTrial, DQN.n_inputs))
     R = np.zeros((framesPerTrial, 1))
@@ -128,10 +131,10 @@ def runFrameByFrame(JPC):
         stateAction = s + a
         pastStateActions.append(stateAction)
 
-        print("frame %d of Trial %d current state: %s" % (frameCount, trialTracker, stateStr))
-        print("reinforcement: " + str(rn))
-        print("taking action: " + str(a))
-        print("-----")
+        debug("frame %d of Trial %d current state: %s" % (frameCount, trialTracker, stateStr))
+        debug("reinforcement: " + str(rn))
+        debug("taking action: " + str(a))
+        debug("-----")
         
         #tell java to make this action:
         JPC.sendInt(int(a))
@@ -175,10 +178,12 @@ def runFrameByFrame(JPC):
     DQN.dump(dumpDir)
 
     saveLastNActionStatePairs(20,pastStateActions)
-    saveResults(r_sum / (nTrials * framesPerTrial), r_last_2 / (2 * framesPerTrial))
+    R = r_sum / (nTrials * framesPerTrial)
+    R_last2 = r_last_2 / (2 * framesPerTrial)
+    saveResults(R, R_last2)
 
     JPC.sendInt(0)
-    # return r_sum / (nTrials * framesPerTrial), r_last_2 / (2 * framesPerTrial)
+    return R, R_last2
 
 
 def saveResults(R, R_last2):
@@ -197,16 +202,16 @@ def saveLastNActionStatePairs(nToSave, actionStatePairs):
 
 
 
+
 def main(expIndex=None):
     global framesPerTrial, nTrials, n_epochs, learningRate, gamma, DQN, nHidden, myDir
     if(expIndex):
         tempPath = os.path.join(expDir, expNtmp%expIndex)
-        print(tempPath)
+        debug(tempPath)
         myDir = Path(tempPath)
-        myDir.mkdir(parents=True, exist_ok=True)
             
 
-        print("Loading experiment %s"%expIndex)
+        debug("Loading experiment %s"%expIndex)
 
         expDF = pds.read_csv(ExperimentsCSV,index_col=0)
         expr = expDF.iloc[expIndex]
@@ -218,16 +223,21 @@ def main(expIndex=None):
         learningRate = expr["learningRate"]
         gamma = expr["gamma"]
 
-        print(expr)
+        debug(expr)
+    
+    myDir.mkdir(parents=True, exist_ok=True)
 
     JPC = JPComms.JPComms(modesExcpected["TRAIN"])
 
     DQN = RLNN.RLNeuralNetwork(validActions, Epsilon, n_inputs, nHidden, 1)
     DQN.createStandards(Xmeans, Xstds, Tmean, Tstd)
 
-    print("\n-----------------------------------------------------")
+    debug("\n-----------------------------------------------------")
     r, rLast2 = runFrameByFrame(JPC)
 
+def debug(*toPrint, sep=" "):
+    if(doDebug):
+        print(toPrint, sep=sep)
 
 if __name__ == "__main__":
     expIndex = None
@@ -241,5 +251,3 @@ if __name__ == "__main__":
         raise Exception("Only one argument can be supplied.")
 
     main(expIndex)
-    
-
