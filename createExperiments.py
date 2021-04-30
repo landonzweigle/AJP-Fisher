@@ -54,41 +54,41 @@ def main(runnerName):
 	
 	# total frame counts = [50000 , 100000 , 200000]
 	# fpt vals = [5, 15, 35]
-	# hidden layer archs = [ [20], [100], [500], [100,100], [250, 500], [500,250], [80,80,80], [20, 100, 20], [100,20,100] ]
+	# hidden layer archs = [ [20], [50], [100], [50,50], [30,80], [80,30], [40,40,40], [20,80,20], [80,20,80] ]
 	
 	if runnerName == "landon":
 		experiments.addExperiment(5, 10000, [20], 150, 0.01, 0.8)
-		experiments.addExperiment(5, 40000, [500], 150, 0.01, 0.8)
-		experiments.addExperiment(5, 20000, [80,80,80], 150, 0.01, 0.8)
-		experiments.addExperiment(5, 10000, [250, 500], 150, 0.01, 0.8)
-		experiments.addExperiment(5, 40000, [100,100], 150, 0.01, 0.8)
+		experiments.addExperiment(5, 40000, [100], 150, 0.01, 0.8)
+		experiments.addExperiment(5, 20000, [40,40,40], 150, 0.01, 0.8)
+		experiments.addExperiment(5, 10000, [30,80], 150, 0.01, 0.8)
+		experiments.addExperiment(5, 40000, [50,50], 150, 0.01, 0.8)
 		
-		experiments.addExperiment(10, 10000, [250, 500], 150, 0.01, 0.8)
-		experiments.addExperiment(10, 5000, [500], 150, 0.01, 0.8)
-		experiments.addExperiment(10, 20000, [100], 150, 0.01, 0.8)
-		experiments.addExperiment(10, 10000, [100,20,100], 150, 0.01, 0.8)
+		experiments.addExperiment(10, 10000, [30,80], 150, 0.01, 0.8)
+		experiments.addExperiment(10, 5000, [100], 150, 0.01, 0.8)
+		experiments.addExperiment(10, 20000, [50], 150, 0.01, 0.8)
+		experiments.addExperiment(10, 10000, [80,20,80], 150, 0.01, 0.8)
 		
-		experiments.addExperiment(30, 1667, [80,80,80], 150, 0.01, 0.8)
-		experiments.addExperiment(30, 6666, [100,20,100], 150, 0.01, 0.8)
-		experiments.addExperiment(30, 3333, [100,100], 150, 0.01, 0.8)
-		experiments.addExperiment(30, 1667, [100], 150, 0.01, 0.8)
+		experiments.addExperiment(30, 1667, [40,40,40], 150, 0.01, 0.8)
+		experiments.addExperiment(30, 6666, [80,20,80], 150, 0.01, 0.8)
+		experiments.addExperiment(30, 3333, [50,50], 150, 0.01, 0.8)
+		experiments.addExperiment(30, 1667, [50], 150, 0.01, 0.8)
 		experiments.addExperiment(30, 6666, [20], 150, 0.01, 0.8)
 	elif runnerName == "keegan"
-		experiments.addExperiment(5, 20000, [100], 150, 0.01, 0.8)
-		experiments.addExperiment(5, 10000, [100,20,100], 150, 0.01, 0.8)
-		experiments.addExperiment(5, 40000, [20, 100, 20], 150, 0.01, 0.8)
-		experiments.addExperiment(5, 20000, [500,250], 150, 0.01, 0.8)
+		experiments.addExperiment(5, 20000, [50], 150, 0.01, 0.8)
+		experiments.addExperiment(5, 10000, [80,20,80], 150, 0.01, 0.8)
+		experiments.addExperiment(5, 40000, [20,80,20], 150, 0.01, 0.8)
+		experiments.addExperiment(5, 20000, [80,30], 150, 0.01, 0.8)
 		
-		experiments.addExperiment(10, 5000, [100,100], 150, 0.01, 0.8)
-		experiments.addExperiment(10, 20000, [500,250], 150, 0.01, 0.8)
+		experiments.addExperiment(10, 5000, [50,50], 150, 0.01, 0.8)
+		experiments.addExperiment(10, 20000, [80,30], 150, 0.01, 0.8)
 		experiments.addExperiment(10, 10000, [20], 150, 0.01, 0.8)
-		experiments.addExperiment(10, 5000, [20, 100, 20], 150, 0.01, 0.8)
-		experiments.addExperiment(10, 20000, [80,80,80], 150, 0.01, 0.8)
+		experiments.addExperiment(10, 5000, [20,80,20], 150, 0.01, 0.8)
+		experiments.addExperiment(10, 20000, [40,40,40], 150, 0.01, 0.8)
 		
-		experiments.addExperiment(30, 3333, [20, 100, 20], 150, 0.01, 0.8)
-		experiments.addExperiment(30, 1667, [500,250], 150, 0.01, 0.8)
-		experiments.addExperiment(30, 6666, [250, 500], 150, 0.01, 0.8)
-		experiments.addExperiment(30, 3333, [500], 150, 0.01, 0.8)
+		experiments.addExperiment(30, 3333, [20,80,20], 150, 0.01, 0.8)
+		experiments.addExperiment(30, 1667, [80,30], 150, 0.01, 0.8)
+		experiments.addExperiment(30, 6666, [30,80], 150, 0.01, 0.8)
+		experiments.addExperiment(30, 3333, [100], 150, 0.01, 0.8)
 		
     csvPath.mkdir(parents=True, exist_ok=True) #make the dir if it doesnt exist.
     df = experiments.toDict()
