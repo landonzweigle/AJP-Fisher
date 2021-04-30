@@ -211,13 +211,16 @@ def savePlot(meanReinforcements):
     out = os.path.join(myDir, toSave)
 
     ax = plt.figure().gca()
+    plt.ylim([0,4])
+    plt.grid()
 
     plt.plot(meanReinforcements)
     plt.xlabel("Trial")
     plt.ylabel("Mean Reinforcement")
+    ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+
     plt.savefig(out)
 
-    ax.xaxis.set_major_locator(MaxNLocator(integer=True))
 
 
 def main(expIndex=None, expDir=expDir):
