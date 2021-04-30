@@ -6,7 +6,7 @@ import java.util.Scanner;
 
 import APJ.Hook.Comms;
 import javafx.application.Application;
-
+import javafx.event.EventHandler;
 import javafx.animation.AnimationTimer;
 import javafx.geometry.VPos;
 import javafx.scene.Group;
@@ -20,6 +20,8 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
+
 
 public class FishGame extends Application {
 
@@ -152,6 +154,8 @@ public class FishGame extends Application {
 	public static volatile boolean canPlay = false;
 	
 	public static synchronized void stopPlaying() {
+		print("ending");
+		isRunning = false;
 		canPlay = false;
 	}
 	
@@ -175,8 +179,8 @@ public class FishGame extends Application {
 	static int dtiIndex = 0;
 	static int frameCount = 0;
 
-	
-	
+
+
 	public enum FrameMode{
 		PersonPlay,   //The "regular" game (this version still has stuff removed.)
 		FrameAtTime,  //For training a model. Waits until a specified even to process the next frame.
@@ -184,7 +188,7 @@ public class FishGame extends Application {
 	
 	public enum GameMode{
 		Normal,       //The "regular" game (this version still has stuff removed.)
-		SafePractice, //You cannot lose a fish and there is no intermediate state of casting/etc. Once a fish is caught a new fish is generated. (the game starts with a cought fish)
+		SafePractice, //You cannot lose or catch fish and there is no intermediate state of casting/etc. Once a fish is caught a new fish is generated. (the game starts with a cought fish)
 		Practice      //Like SafePractice but you can lose fish. Once a fish is lost a new fish is generated.
 	}
 	
@@ -199,19 +203,29 @@ public class FishGame extends Application {
 	private static volatile boolean precedFrame = false; // Set to true to proceed to the next frame in gamemode FrameAtTime.
 	public static volatile boolean frameProccessed = true;
 	
+	public static volatile boolean isRunning = false;
 	
+	public static void throwIfNotRunning() throws Exception {
+		if(isRunning) {
+			
+		}else {
+			throw new Exception("The Stage is no longer running :(");
+		}
+	}
 	
-	
-	public static synchronized void setReelIn(boolean shouldReelIn) {
+	public static synchronized void setReelIn(boolean shouldReelIn) throws Exception {
+		throwIfNotRunning();
 		reelIn = shouldReelIn;
 	}
 	
-	public static synchronized void nextFrame() {
+	public static synchronized void nextFrame() throws Exception {
+		throwIfNotRunning();
 		precedFrame = true;
 		frameProccessed = false;
 	}
 	
-	public static synchronized boolean isFrameProccessed() {
+	public static synchronized boolean isFrameProccessed() throws Exception {
+		throwIfNotRunning();
 		return frameProccessed;
 	}
 	
@@ -250,13 +264,15 @@ public class FishGame extends Application {
 		
 		// Set base Capture area information
 		CA.setPos(862, startPos); //OG: 862, -100
+		CA.setyVel(0);
 		CA.setHeight((int) CA.getImg().getHeight());
 		CA.setWidth((int) CA.getImg().getWidth());
 		CA.setMaxH(687);
 		CA.setMinH(35);
-
+		
 		// Set base fish information
 		fish.setPos(852, startPos);
+		fish.setyVel(0);
 		fish.setHeight((int) fish.getImg().getHeight());
 		fish.setWidth((int) fish.getImg().getWidth());
 		fish.setMaxH(687);
@@ -265,6 +281,7 @@ public class FishGame extends Application {
 	}
 
 	public static void launchGame() {
+		isRunning = true;
 		launch(args);	
 	}
 
@@ -303,6 +320,7 @@ public class FishGame extends Application {
 	// EveryOne
 	@Override
 	public void start(Stage stage) throws Exception {
+		isRunning = true;
 		URL location = ClassLoader.getSystemClassLoader().getResource("FishBobberDown.wav");
 		AudioClip bobberDown = new AudioClip(location.toString());
 
@@ -331,7 +349,17 @@ public class FishGame extends Application {
 
 		// update the original fish and Capture area.
 		animPos = 5;
+//----------------------Get exit Eventss-------------------//
+		stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
+			@Override
+			public void handle(WindowEvent we) {
+				canPlay = false;
+				isRunning = false;
+				print("closing window.");
+			}
+		});
 		
+	
 // ---------------------Get Mouse Events-------------------//
 		sc.setOnMousePressed(event -> {
 			if (event.getButton() == MouseButton.PRIMARY) {
@@ -351,7 +379,10 @@ public class FishGame extends Application {
 			// This is essentially just a while loop controlled by javaFX
 			@Override
 			public void handle(long now) {
-				if(canPlay==false) {
+				if(canPlay==false || isRunning == false) {
+					print("something killed the loop");
+					isRunning = false;
+					stage.fireEvent(new WindowEvent(stage, WindowEvent.WINDOW_CLOSE_REQUEST));
 					stop();
 				}
 
@@ -485,7 +516,7 @@ public class FishGame extends Application {
 					// draw the bar.
 					gc.drawImage(bar, 751, 692, 64, -ySize);
 					// Handle capture/loss
-					if (myPoints >= CAPTUREPOINTS) {
+					if (myPoints >= CAPTUREPOINTS && gamemode!=GameMode.SafePractice) {
 						//Captured the fish successfully:
 						mode = 2;
 						animPos = 0;

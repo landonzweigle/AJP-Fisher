@@ -1,10 +1,25 @@
-import socket, RLNN, math, time
-from typing import MappingView
+#!/usr/bin/python3
 
+import os
+from pathlib import Path
+
+import RLNN, math, sys
+import JavaPythonComms as JPComms
 from numpy.core.defchararray import split
 import numpy as np, pandas as pds
 
 modesExcpected = {"TRAIN": ("FrameAtTime", "SafePractice"),"TEST": ("PersonPlay", "Practice"),"NORMAL": ("PersonPlay", "Normal")}
+ExperimentsCSV = "../Experiments/experiments.csv"
+
+expDir = "../Experiments"
+expNtmp = "EXP_%d/"
+
+RLNNDumpName = "RLNN.dump"
+
+myDir = Path(os.path.join(expDir, "default/"))
+doDebug = False
+
+
 
 def sampleSTD(values, avg):
     sqrSum = sum([(val - avg)**2 for val in values])
@@ -29,17 +44,18 @@ reinforcements = [0,1,2,3]
 meanRein = 1.5
 stdRein = 1.118
 
-Xmeans = [meanH, meanV, meanAct]
-Xstds = [stdH, stdV, stdAct]
+Xmeans = [meanH, meanH, meanV, meanV, meanAct]
+Xstds = [stdH, stdH, stdV, stdV, stdAct]
 Tmean = [meanRein]
 Tstd = [stdRein]
 ####################
 #SPECIFIC ML VARS:
 ####################
 
-framesPerTrial = 200 #amount in frames
-nTrials = 100
+framesPerTrial = 50 #amount in frames
+nTrials = 1
 
+nHidden = [100]
 n_epochs = 50
 learningRate = 0.01
 
@@ -49,110 +65,24 @@ epsilon_decay =  np.exp(np.log(finalEpsilon) / nTrials)
 gamma = 0.8
 
 
-n_inputs = 3 #{deltaP, deltaV, action}
-DQN = RLNN.RLNeuralNetwork(validActions, Epsilon, n_inputs, [100], 1)
-DQN.createStandards(Xmeans, Xstds, Tmean, Tstd)
+n_inputs = 5 #{deltaP, deltaV, action} or {bobberPos, fishPos, bobberVel, fishVel, action}
+DQN = None
 ####################
 
 
 
 
-
-class JPComms:
-    CNN_ATMPTS = 10
-    sock = None    
-    framemode = None
-    gamemode = None
-
-
-    def __init__(self, mode):
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        
-        self.framemode, self.gamemode = mode
-        
-        trysLeft = self.CNN_ATMPTS
-        connected = False
-        lastExep = None
-        while(trysLeft > 0 and not connected):
-            try:
-                self.sock.connect(("localhost",13337))
-                connected = True
-            except Exception as e:
-                lastExep = e
-                trysLeft -= 1
-
-                if(trysLeft > 0):
-                    time.sleep(0.25)
-                else:
-                    print("Ran out of connection attempts")
-                    raise lastExep
-
-
-        self.startupSeq()
-
-
-
-    def startupSeq(self):
-        firstMsg = self.recvStr()
-        print("FM: " + firstMsg)
-        if(firstMsg=="Hello Python :)"):
-            self.sendStr("Hello Java :D")
-            #recv expected framemode and gamemode:
-            print("Getting modes")
-            actFrameMode = self.recvStr()
-            actGameMode = self.recvStr()
-            print("modes: " + actFrameMode + " " + actGameMode)
-            print("Checking modes")
-            if ( (actFrameMode != self.framemode) or (actGameMode != self.gamemode) ):
-                self.sendStr("MMM")
-                raise Exception("modes dont match")
-            self.sendStr("")
-            print("\"HandShake\" successful")
-            return
-            
-    def sendInt(self, toSend):
-        self.sock.sendall(toSend.to_bytes(4, 'big'))
-            
-    def recvInt(self):
-        intBytes = self.sock.recv(4)
-        return int.from_bytes(intBytes, 'big')
-
-    def sendStr(self, toSend):
-        if(type(toSend)==str):
-
-            enc = toSend.encode('utf-8')
-            msgLen = len(enc)
-            self.sock.sendall(msgLen.to_bytes(4, 'big')) #send message length
-            self.sock.sendall(enc) #send Message.
-        
-
-    def recvStr(self):
-        if(not self.sock):
-            return -1
-        msgLen = int.from_bytes(self.sock.recv(4),'big')
-
-        msg = self.sock.recv(msgLen)
-        return msg.decode('utf-8')
-        
-
-
-
-
-
-
-
-
 def runFrameByFrame(JPC):
+    debug("ExperimentArgs:")
+    debug(framesPerTrial, nTrials, nHidden, n_epochs, learningRate, gamma,sep='\n')
     FramesToPlay = framesPerTrial * nTrials
     trialTracker = 0
 
+    debug()
 
     X = np.zeros((framesPerTrial, DQN.n_inputs))
     R = np.zeros((framesPerTrial, 1))
     Qn = np.zeros((framesPerTrial, 1))
-
-    # s = initial_state_f()
-    # a, _ = DQN.EpsilonGreedyUse(DQN, s, validActions, epsilon)
 
     r_sum = 0
     r_last_2 = 0
@@ -160,6 +90,15 @@ def runFrameByFrame(JPC):
 
     frameCount = 1
     msgToSend = 10
+
+    initStateStr = JPC.recvStr()[1:-1].split(',');
+    initState = list([int(val.split(':')[-1]) for val in initStateStr])
+    s = initState
+    a, _ign = DQN.EpsilonGreedyUse(s)
+
+    meanRein = []
+    pastStateActions = []
+
     while(frameCount <= FramesToPlay):
         JPC.sendInt(msgToSend)
 
@@ -170,7 +109,6 @@ def runFrameByFrame(JPC):
 
         #get the state:
         stateStr = JPC.recvStr()
-        print("frame %s current state: %s" % (frameCount, stateStr))
         
         #################
         # MAIN LOOP
@@ -179,20 +117,26 @@ def runFrameByFrame(JPC):
         #state is in the formate <deltaP, deltaV>
         state = stateStr[1:-1].split(',')
         state = list([int(val.split(':')[-1]) for val in state])
-        s = state
-        print("converted state:", state)
-        # s,a = state
+        sn = state
 
         step = frameCount % framesPerTrial
         # sn = next_state_f(s, a)        # Update state, sn, from s and a
         rn = DQN.getReinforcement(state)    # Calculate resulting reinforcement
-        a, qn = DQN.EpsilonGreedyUse(state)  # choose next action
+        an, qn = DQN.EpsilonGreedyUse(state)  # choose next action
         X[step, :] = s + [a]
         R[step, 0] = rn
         Qn[step, 0] = qn
+        s, a = sn, an
+
+        stateAction = s + a
+        pastStateActions.append(stateAction)
+
+        debug("frame %d of Trial %d current state: %s" % (frameCount, trialTracker, stateStr))
+        debug("reinforcement: " + str(rn))
+        debug("taking action: " + str(a))
+        debug("-----")
         
         #tell java to make this action:
-        print("taking action: " + str(a))
         JPC.sendInt(int(a))
 
 
@@ -204,12 +148,17 @@ def runFrameByFrame(JPC):
             trialTracker += 1
 
             T = R + gamma * Qn
-            r_sum += np.sum(R)
+            curSome = np.sum(R)
+            r_sum += curSome
+
+            meanRein.append(r_sum / len(R))
+
             if trialTracker > nTrials - 3:
-                r_last_2 += np.sum(R)
+                r_last_2 += curSome
            
             epsilon *= epsilon_decay
-            DQN.train(X, R + gamma * Qn, n_epochs, learningRate, method='sgd', verbose=False)
+
+            DQN.train(X, T, n_epochs, learningRate, method='sgd', verbose=False)
 
             #Reset trackers:
             X = np.zeros((framesPerTrial, DQN.n_inputs))
@@ -218,39 +167,87 @@ def runFrameByFrame(JPC):
 
 
             msgToSend = 5
+            s = initState
+            a, _ign = DQN.EpsilonGreedyUse(s)
+
         else:
             msgToSend = 10
-
-
-        
         #################
         frameCount += 1
+    dumpDir = os.path.join(myDir, "DQN.dump")
+    DQN.dump(dumpDir)
+
+    saveLastNActionStatePairs(20,pastStateActions)
+    R = r_sum / (nTrials * framesPerTrial)
+    R_last2 = r_last_2 / (2 * framesPerTrial)
+    saveResults(R, R_last2)
 
     JPC.sendInt(0)
-    return r_sum / (nTrials * framesPerTrial), r_last_2 / (2 * framesPerTrial)
+    return R, R_last2
+
+
+def saveResults(R, R_last2):
+    toSave = "results.csv"
+    out = os.path.join(myDir,toSave)
+    data = [nTrials, framesPerTrial, n_epochs, nHidden, gamma, learningRate, R, R_last2]
+    df = pds.DataFrame(columns=["NTrials", "frames/trial", "n_epochs", "hidden layers", "gamma", "learning rate", "R", "R last 2"])
+    df.to_csv(out)
+
+
+def saveLastNActionStatePairs(nToSave, actionStatePairs):
+    toSave = "ActionState.csv"
+    out = os.path.join(myDir,toSave)
+    df = pds.DataFrame(actionStatePairs[-nToSave:])
+    df.to_csv(out)
 
 
 
 
+def main(expIndex=None):
+    global framesPerTrial, nTrials, n_epochs, learningRate, gamma, DQN, nHidden, myDir
+    if(expIndex):
+        tempPath = os.path.join(expDir, expNtmp%expIndex)
+        debug(tempPath)
+        myDir = Path(tempPath)
+            
 
+        debug("Loading experiment %s"%expIndex)
 
+        expDF = pds.read_csv(ExperimentsCSV,index_col=0)
+        expr = expDF.iloc[expIndex]
 
+        framesPerTrial = expr["framesPerTrial"]
+        nTrials = expr["nTrials"]
+        nHidden = [int(varr) for varr in expr["nHiddens"][1:-1].split(',')]
+        n_epochs = expr["n_epochs"]
+        learningRate = expr["learningRate"]
+        gamma = expr["gamma"]
 
+        debug(expr)
+    
+    myDir.mkdir(parents=True, exist_ok=True)
 
+    JPC = JPComms.JPComms(modesExcpected["TRAIN"])
 
+    DQN = RLNN.RLNeuralNetwork(validActions, Epsilon, n_inputs, nHidden, 1)
+    DQN.createStandards(Xmeans, Xstds, Tmean, Tstd)
 
-
-
-
-
-
-def main():
-    JPC = JPComms(modesExcpected["TRAIN"])
-    print("\n-----------------------------------------------------")
+    debug("\n-----------------------------------------------------")
     r, rLast2 = runFrameByFrame(JPC)
 
+def debug(*toPrint, sep=" "):
+    if(doDebug):
+        print(toPrint, sep=sep)
 
 if __name__ == "__main__":
-    main()
-    
+    expIndex = None
+    if(len(sys.argv)==2):
+        try:
+            expIndex = int(sys.argv[1])
+        except ValueError:
+            raise ValueError("Expected argument to be of type int.")
 
+    elif(len(sys.argv) > 2):
+        raise Exception("Only one argument can be supplied.")
+
+    main(expIndex)

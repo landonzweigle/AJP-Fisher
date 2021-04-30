@@ -12,19 +12,33 @@ import APJ.Fisher.Sprite;
 
 public class Comms extends Thread{
 	class GameState{
+		
+		int bobberPos;
+		int bobberVel;
+		
+		int fishPos;
+		int fishVel;
+		
 		int deltaP;
 		int deltaV;
 		
 		//deltaX: the vector from bobber.posY to fish.posY.
 		//deltaX: the vector from bobber.velY to fish.velY.
-		public GameState(int deltaP, int deltaV) { 
-			this.deltaP = deltaP;
-			this.deltaV = deltaV;
+		public GameState(int bobberPos, int fishPos, int bobberVel, int fishVel) { 
+			this.bobberPos = bobberPos;
+			this.bobberVel = bobberVel;
+			
+			this.fishPos = fishPos;
+			this.fishVel = fishVel;
+			
+			this.deltaP = fishPos - bobberPos;
+			this.deltaV = fishVel - bobberVel;
 		}
 		
+//		This is what is ultimately sent to python as the state.
 		public String toString() {
-			String _ret = "<deltaP: %s, deltaV: %s>";
-			_ret = String.format(_ret, this.deltaP, this.deltaV);
+			String _ret = "<bP: %s, fP: %s, bV: %s, fV: %s>";
+			_ret = String.format(_ret, this.bobberPos, this.fishPos, this.bobberVel, this.fishVel);
 			return _ret;
 		}
 	}
@@ -90,11 +104,12 @@ public class Comms extends Thread{
 				FishGame.print("Starting game...\n");
 				FishGame.startGame(); //Start the game.	
 				FrameByFramePlayGame();
+				FishGame.stopPlaying();
 			}else {
 				FishGame.print("Startup message didn't match :(");
 				return;
 			}
-		} catch (IOException e) {
+		} catch (Exception e) {
 			FishGame.stopPlaying();
 			e.printStackTrace();
 		}
@@ -105,8 +120,10 @@ public class Comms extends Thread{
 	//Tell python the state.
 	//Step FishGame to next frame.
 	//repeat.	
-	private void FrameByFramePlayGame() throws IOException {	
+	private void FrameByFramePlayGame() throws Exception {	
 		int recvMsg;
+		GameState initState = getGameState();
+		sendStr(initState.toString());
 		while((recvMsg=recvInt())!=0) {
 			if(recvMsg==10) {}else if(recvMsg==5) {
 				FishGame.startGame();
@@ -118,17 +135,7 @@ public class Comms extends Thread{
 			sendInt(10);
 			
 			GameState curState = getGameState();
-			//For communicating our state to python we have several options:
-			//Send curState.toString to python.
-			//or
-			//Send several integers.
-			  
-			//Pros and cons:
-			//Pro for sending string:
-			//Very flexible.
-			//Con for sending String:
-			//Might take longer because of more data.
-			//Yeah lets just go with sending the string. If it proves too slow we can change it.
+
 			
 			
 			String state = curState.toString();
@@ -141,6 +148,7 @@ public class Comms extends Thread{
 			
 			FishGame.nextFrame();
 		}
+		FishGame.print("Python ended");
 	}
 	
 	
@@ -149,7 +157,7 @@ public class Comms extends Thread{
 		Sprite Fish = FishGame.fish;
 		
 		//vector is defined as: target - origin.
-		GameState _ret = new GameState((int)(Fish.getY() - CA.getY()), (int)(Fish.getyVel() - CA.getyVel()));
+		GameState _ret = new GameState((int)CA.getY(), (int)Fish.getY(), (int)CA.getyVel(), (int)Fish.getyVel());
 		return _ret;		
 	}
 	

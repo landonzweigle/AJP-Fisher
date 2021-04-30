@@ -1,6 +1,8 @@
+import math
 import numpy as np
 from numpy.core.defchararray import array
 import Optimizers as optimizers
+import pickle
 import sys, random
 
 ######################################################################
@@ -167,6 +169,13 @@ class RLNeuralNetwork():
 
 
 
+    def dump(self, dumpTo):
+        pickle.dump(self, open(dumpTo, "wb"))
+
+    @staticmethod
+    def load(dumpFile):
+        return pickle.load(dumpFile)
+
     def createStandards(self, Xmeans, Xstds, Tmeans, Tstds):
         self.Xmeans = np.array(Xmeans)
         self.Xstds = np.array(Xstds)
@@ -202,17 +211,32 @@ class RLNeuralNetwork():
 
     @staticmethod
     def getReinforcement(state):
-        deltaP, deltaV = state
-        if(deltaP==0 and deltaV==0):
-            return 0
-        elif(deltaP==0 and deltaV!=0):
-            return 1
-        elif(deltaP!=0 and deltaV<0):
-            return 2
-        elif(deltaP!=0 and deltaV==0):
-            return 3
-        return 100
+        bobberPos, fishPos, bobberVel, fishVel = state
+        
+        relPos = fishPos - bobberPos
+        range = abs(relPos)
+        # relVel = abs(fishVel - bobberVel)
+        vSign = bobberVel * fishVel
 
+        bColliding = (range <= 75)
 
+        if(bColliding):
+            if(vSign < 0):
+                #moving away and colliding
+                return 1
+            elif (vSign >= 0):
+                #moving together and colliding
+                return 0
+            return 100
 
-
+        else:
+            relPosVelSign = bobberVel * relPos
+            if(relPosVelSign < 0):
+                #moving away from fish and not colliding
+                return 4
+            elif(relPosVelSign > 0):
+                #moving towards fish and not colliding
+                return 2
+            else:
+                #not moving and not colliding
+                return 3
