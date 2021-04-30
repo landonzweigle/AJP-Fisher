@@ -233,7 +233,7 @@ class RLNeuralNetwork():
             relPosVelSign = bobberVel * relPos
             if(relPosVelSign < 0):
                 #moving away from fish and not colliding
-                return 4
+                return 3
             elif(relPosVelSign > 0):
                 #moving towards fish and not colliding
                 return 2

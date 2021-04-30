@@ -73,7 +73,7 @@ n_inputs = 5 #{deltaP, deltaV, action} or {bobberPos, fishPos, bobberVel, fishVe
 DQN = None
 ####################
 
-
+resetScenePerTrial = False
 
 
 def runFrameByFrame(JPC):
@@ -106,6 +106,8 @@ def runFrameByFrame(JPC):
     while(frameCount <= FramesToPlay):
         JPC.sendInt(msgToSend)
 
+        step = (frameCount-1) % framesPerTrial
+        print(step)
         #make sure that the frame has processed:
         allGood = JPC.recvInt()
         if(allGood != 10):
@@ -123,8 +125,6 @@ def runFrameByFrame(JPC):
         state = list([int(val.split(':')[-1]) for val in state])
         sn = state
 
-        step = frameCount % framesPerTrial
-        # sn = next_state_f(s, a)        # Update state, sn, from s and a
         rn = DQN.getReinforcement(state)    # Calculate resulting reinforcement
         an, qn = DQN.EpsilonGreedyUse(state)  # choose next action
         X[step, :] = s + [a]
@@ -161,7 +161,8 @@ def runFrameByFrame(JPC):
                 r_last_2 += curSome
            
             epsilon *= epsilon_decay
-
+            print(T)
+            print(len(T))
             DQN.train(X, T, n_epochs, learningRate, method='sgd', verbose=False)
 
             #Reset trackers:
@@ -170,7 +171,9 @@ def runFrameByFrame(JPC):
             Qn = np.zeros((framesPerTrial, 1))
 
 
-            msgToSend = 5
+            if(resetScenePerTrial):
+                msgToSend = 5
+
             s = initState
             a, _ign = DQN.EpsilonGreedyUse(s)
 
@@ -222,7 +225,6 @@ def main(expIndex=None, expDir=expDir):
         tempPath = os.path.join(expDir, expNtmp%expIndex)
         debug(tempPath)
         myDir = Path(tempPath)
-            
 
         debug("Loading experiment %s"%expIndex)
 
@@ -242,9 +244,9 @@ def main(expIndex=None, expDir=expDir):
     #do the plotting setup:
     ax = plt.figure().gca()
     ax.xaxis.set_major_locator(MaxNLocator(integer=True))
-    plt.ylim([0,4])
+    plt.ylim([-1,4])
     plt.grid()
-    plt.xlabel("Trial")
+    plt.xlabel("Trial (Time)")
     plt.ylabel("Mean Reinforcement")
 
     myDir.mkdir(parents=True, exist_ok=True)
