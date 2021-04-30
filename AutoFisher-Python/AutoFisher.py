@@ -2,11 +2,13 @@
 
 import os
 from pathlib import Path
+import matplotlib.pyplot as plt
 
 import RLNN, math, sys
 import JavaPythonComms as JPComms
 from numpy.core.defchararray import split
 import numpy as np, pandas as pds
+
 
 modesExcpected = {"TRAIN": ("FrameAtTime", "SafePractice"),"TEST": ("PersonPlay", "Practice"),"NORMAL": ("PersonPlay", "Normal")}
 ExperimentsCSV = "experiments.csv"
@@ -52,8 +54,8 @@ Tstd = [stdRein]
 #SPECIFIC ML VARS:
 ####################
 
-framesPerTrial = 50 #amount in frames
-nTrials = 1
+framesPerTrial = 10 #amount in frames
+nTrials = 5
 
 nHidden = [100]
 n_epochs = 50
@@ -128,7 +130,7 @@ def runFrameByFrame(JPC):
         Qn[step, 0] = qn
         s, a = sn, an
 
-        stateAction = s + a
+        stateAction = s + [a]
         pastStateActions.append(stateAction)
 
         debug("frame %d of Trial %d current state: %s" % (frameCount, trialTracker, stateStr))
@@ -151,7 +153,7 @@ def runFrameByFrame(JPC):
             curSome = np.sum(R)
             r_sum += curSome
 
-            meanRein.append(r_sum / len(R))
+            meanRein.append(curSome / len(R))
 
             if trialTracker > nTrials - 3:
                 r_last_2 += curSome
@@ -177,10 +179,11 @@ def runFrameByFrame(JPC):
     dumpDir = os.path.join(myDir, "DQN.dump")
     DQN.dump(dumpDir)
 
-    saveLastNActionStatePairs(20,pastStateActions)
     R = r_sum / (nTrials * framesPerTrial)
     R_last2 = r_last_2 / (2 * framesPerTrial)
+    saveLastNActionStatePairs(20,pastStateActions)
     saveResults(R, R_last2)
+    savePlot(meanRein)
 
     JPC.sendInt(0)
     return R, R_last2
@@ -189,18 +192,26 @@ def runFrameByFrame(JPC):
 def saveResults(R, R_last2):
     toSave = "results.csv"
     out = os.path.join(myDir,toSave)
-    data = [nTrials, framesPerTrial, n_epochs, nHidden, gamma, learningRate, R, R_last2]
-    df = pds.DataFrame(columns=["NTrials", "frames/trial", "n_epochs", "hidden layers", "gamma", "learning rate", "R", "R last 2"])
+    data = [[nTrials, framesPerTrial, n_epochs, nHidden, gamma, learningRate, R, R_last2]]
+    df = pds.DataFrame(data, columns=["NTrials", "frames/trial", "n_epochs", "hidden layers", "gamma", "learning rate", "R", "R last 2"])
     df.to_csv(out)
 
 
 def saveLastNActionStatePairs(nToSave, actionStatePairs):
     toSave = "ActionState.csv"
     out = os.path.join(myDir,toSave)
-    df = pds.DataFrame(actionStatePairs[-nToSave:])
+    df = pds.DataFrame(actionStatePairs[-nToSave:], columns = ["bobber pos", "fish pos", "bobber vel", "fish vel", "action taken"])
     df.to_csv(out)
 
+def savePlot(meanReinforcements):
+    print(meanReinforcements)
+    toSave = "meanReinByTrial.png"
+    out = os.path.join(myDir, toSave)
 
+    plt.plot(meanReinforcements)
+    plt.xlabel("Trial")
+    plt.ylabel("Mean Reinforcement")
+    plt.savefig(out)
 
 
 def main(expIndex=None, expDir=expDir):
