@@ -185,6 +185,7 @@ def runFrameByFrame(JPC):
     R_last2 = r_last_2 / (2 * framesPerTrial)
     saveLastNActionStatePairs(20,pastStateActions)
     saveResults(R, R_last2)
+
     savePlot(meanRein)
 
     JPC.sendInt(0)
@@ -206,20 +207,12 @@ def saveLastNActionStatePairs(nToSave, actionStatePairs):
     df.to_csv(out)
 
 def savePlot(meanReinforcements):
-    print(meanReinforcements)
     toSave = "meanReinByTrial.png"
     out = os.path.join(myDir, toSave)
 
-    ax = plt.figure().gca()
-    plt.ylim([0,4])
-    plt.grid()
-
     plt.plot(meanReinforcements)
-    plt.xlabel("Trial")
-    plt.ylabel("Mean Reinforcement")
-    ax.xaxis.set_major_locator(MaxNLocator(integer=True))
-
     plt.savefig(out)
+
 
 
 
@@ -246,6 +239,14 @@ def main(expIndex=None, expDir=expDir):
 
         debug(expr)
     
+    #do the plotting setup:
+    ax = plt.figure().gca()
+    ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+    plt.ylim([0,4])
+    plt.grid()
+    plt.xlabel("Trial")
+    plt.ylabel("Mean Reinforcement")
+
     myDir.mkdir(parents=True, exist_ok=True)
 
     JPC = JPComms.JPComms(modesExcpected["TRAIN"])
