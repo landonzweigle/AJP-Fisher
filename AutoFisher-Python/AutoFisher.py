@@ -3,6 +3,8 @@
 import os
 from pathlib import Path
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator
+
 
 import RLNN, math, sys
 import JavaPythonComms as JPComms
@@ -208,10 +210,14 @@ def savePlot(meanReinforcements):
     toSave = "meanReinByTrial.png"
     out = os.path.join(myDir, toSave)
 
+    ax = plt.figure().gca()
+
     plt.plot(meanReinforcements)
     plt.xlabel("Trial")
     plt.ylabel("Mean Reinforcement")
     plt.savefig(out)
+
+    ax.xaxis.set_major_locator(MaxNLocator(integer=True))
 
 
 def main(expIndex=None, expDir=expDir):
