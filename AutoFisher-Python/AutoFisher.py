@@ -77,8 +77,8 @@ resetScenePerTrial = False
 
 
 def runFrameByFrame(JPC):
-    debug("ExperimentArgs:")
-    debug(framesPerTrial, nTrials, nHidden, n_epochs, learningRate, gamma,sep='\n')
+    print("ExperimentArgs:")
+    print(framesPerTrial, nTrials, nHidden, n_epochs, learningRate, gamma,sep='\n')
     FramesToPlay = framesPerTrial * nTrials
     trialTracker = 0
 
@@ -107,7 +107,6 @@ def runFrameByFrame(JPC):
         JPC.sendInt(msgToSend)
 
         step = (frameCount-1) % framesPerTrial
-        print(step)
         #make sure that the frame has processed:
         allGood = JPC.recvInt()
         if(allGood != 10):
@@ -161,8 +160,6 @@ def runFrameByFrame(JPC):
                 r_last_2 += curSome
            
             epsilon *= epsilon_decay
-            print(T)
-            print(len(T))
             DQN.train(X, T, n_epochs, learningRate, method='sgd', verbose=False)
 
             #Reset trackers:
