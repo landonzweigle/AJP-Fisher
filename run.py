@@ -10,7 +10,7 @@ import os
 
 
 FNULL = open(os.devnull, 'w')
-
+experimentDir = "./Experiments/"
 
 def main(runnerName):
     if not runnerName == "keegan" and not runnerName == "landon":
@@ -27,10 +27,24 @@ def main(runnerName):
     csvFile = open(createExperiments.csvFullPath)
     for i,line in enumerate(csvFile):
         if i != 0:
+            realIdx = i-1
+            expDir = ""
+            expNtmp = "EXP_%d/" % (realIdx)
+
+            expRunDir = os.path.join(experimentDir, expNtmp)
+            if(os.path.exists(expRunDir)):
+                print("skipping experiment %d" % realIdx)
+                continue
+
             subprocess.Popen([".\gradlew.bat", "run"],stdout=FNULL, stderr=subprocess.STDOUT)
             time.sleep(5)
             print("Running experiment:", line)
-            AutoFisher.main(i-1, "./Experiments/")
+
+            try:
+                AutoFisher.main(realIdx, experimentDir)
+            except Exception as err:
+                print(err)
+                print("Experiment %d failed (unexpected error)." % realIdx)
 
 if __name__ == "__main__":
     runnerName = sys.argv[1]

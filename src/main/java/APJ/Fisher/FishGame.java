@@ -2,6 +2,7 @@ package APJ.Fisher;
 
 
 import java.net.URL;
+import java.util.Random;
 import java.util.Scanner;
 
 import APJ.Hook.Comms;
@@ -229,6 +230,10 @@ public class FishGame extends Application {
 		return frameProccessed;
 	}
 	
+	public final long seed = 42424242;
+	private static Random rng;
+	
+	
 // End changed variables.
 
 	// Landon Zweigle
@@ -236,6 +241,9 @@ public class FishGame extends Application {
 	// Parameters: none
 	// Returns: none.
 	public static void startGame() {
+		
+		rng = new Random(42424242);
+		
 		// Set the images.
 		FISHLOSE = new Image(ClassLoader.getSystemClassLoader().getResource("You Lost the Fish0.png").toString(), 1280,
 				720, true, false);
@@ -456,7 +464,7 @@ public class FishGame extends Application {
 					}
 					gc.drawImage(castAnim[animPos], 0, 0);
 					if (System.currentTimeMillis() >= maxWaitTime) {
-						waitTime = (Math.random() * 2.5) + 5;
+						waitTime = (rng.nextDouble() * 2.5) + 5;
 						waitTime = (waitTime * 1000) + System.currentTimeMillis();
 						maxWaitTime = waitTime + MAXWAITTIMEHOLD;
 						firstNoise = true;
@@ -615,8 +623,8 @@ public class FishGame extends Application {
 			//If the player is idle.
 			if (mode == -1) {
 				// Generate the random fish.
-				fishNum = (int) (Math.random() * 14);
-				waitTime = (Math.random() * 5) + 2.5;
+				fishNum = (int) (rng.nextDouble() * 14);
+				waitTime = (rng.nextDouble() * 5) + 2.5;
 				waitTime = (waitTime * 1000) + System.currentTimeMillis();
 				maxWaitTime = waitTime + MAXWAITTIMEHOLD;
 				fishImage = new Image(ourFish.getIMG(fishNum), 255, 255, true, false);
@@ -683,19 +691,19 @@ public class FishGame extends Application {
 			// required to get, so we can have a relative time.
 			lt = cur;
 			// Milliseconds to wait.
-			ttc = ((Math.random()) * 10 / difficulty);
+			ttc = ((rng.nextDouble()) * 10 / difficulty);
 
 			// The rest of the method is just to make the fish movement feel balanced given
 			// its difficulty. Mult changes the direction.
 			int mult = -1;
-			if (Math.random() <= .025) {
+			if (rng.nextDouble() <= .025) {
 				mult = 1;
 			}
 			// Depending on the fishes current velocity, we change its velocity.
 			if (toRet >= 0) {
-				toRet = 200 * difficulty * ((Math.random()) - (.5)) * mult;
+				toRet = 200 * difficulty * ((rng.nextDouble()) - (.5)) * mult;
 			} else {
-				toRet = 200 * difficulty * ((Math.random()) - (.5)) * mult * -1;
+				toRet = 200 * difficulty * ((rng.nextDouble()) - (.5)) * mult * -1;
 			}
 		}
 		// Return new velocity.
