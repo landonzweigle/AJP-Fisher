@@ -27,7 +27,7 @@ def main(runnerName):
     csvFile = open(createExperiments.csvFullPath)
     for i,line in enumerate(csvFile):
         if i != 0:
-            subprocess.Popen(["./gradlew", "run"],stdout=FNULL, stderr=subprocess.STDOUT)
+            subprocess.Popen(["gradlew", "run"],stdout=FNULL, stderr=subprocess.STDOUT)
             time.sleep(5)
             print("Running experiment:", line)
             AutoFisher.main(i-1, "./Experiments/")
