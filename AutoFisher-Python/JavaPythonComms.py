@@ -26,7 +26,7 @@ class JPComms:
                 if(trysLeft > 0):
                     time.sleep(0.25)
                 else:
-                    print("Ran out of connection attempts")
+                    #print("Ran out of connection attempts")
                     raise lastExep
         self.startupSeq()
 
@@ -34,20 +34,20 @@ class JPComms:
 
     def startupSeq(self):
         firstMsg = self.recvStr()
-        print("FM: " + firstMsg)
+        #print("FM: " + firstMsg)
         if(firstMsg=="Hello Python :)"):
             self.sendStr("Hello Java :D")
             #recv expected framemode and gamemode:
-            print("Getting modes")
+            #print("Getting modes")
             actFrameMode = self.recvStr()
             actGameMode = self.recvStr()
-            print("modes: " + actFrameMode + " " + actGameMode)
-            print("Checking modes")
+            #print("modes: " + actFrameMode + " " + actGameMode)
+            #print("Checking modes")
             if ( (actFrameMode != self.framemode) or (actGameMode != self.gamemode) ):
                 self.sendStr("MMM")
                 raise Exception("modes dont match")
             self.sendStr("")
-            print("\"HandShake\" successful")
+            #print("\"HandShake\" successful")
             return
             
     def sendInt(self, toSend):

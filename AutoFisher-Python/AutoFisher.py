@@ -9,7 +9,7 @@ from numpy.core.defchararray import split
 import numpy as np, pandas as pds
 
 modesExcpected = {"TRAIN": ("FrameAtTime", "SafePractice"),"TEST": ("PersonPlay", "Practice"),"NORMAL": ("PersonPlay", "Normal")}
-ExperimentsCSV = "../Experiments/experiments.csv"
+ExperimentsCSV = "experiments.csv"
 
 expDir = "../Experiments"
 expNtmp = "EXP_%d/"
@@ -203,9 +203,9 @@ def saveLastNActionStatePairs(nToSave, actionStatePairs):
 
 
 
-def main(expIndex=None):
+def main(expIndex=None, expDir=expDir):
     global framesPerTrial, nTrials, n_epochs, learningRate, gamma, DQN, nHidden, myDir
-    if(expIndex):
+    if(expIndex!=None):
         tempPath = os.path.join(expDir, expNtmp%expIndex)
         debug(tempPath)
         myDir = Path(tempPath)
@@ -213,7 +213,8 @@ def main(expIndex=None):
 
         debug("Loading experiment %s"%expIndex)
 
-        expDF = pds.read_csv(ExperimentsCSV,index_col=0)
+        expCSV = os.path.join(expDir, ExperimentsCSV)
+        expDF = pds.read_csv(expCSV,index_col=0)
         expr = expDF.iloc[expIndex]
 
         framesPerTrial = expr["framesPerTrial"]
@@ -250,4 +251,4 @@ if __name__ == "__main__":
     elif(len(sys.argv) > 2):
         raise Exception("Only one argument can be supplied.")
 
-    main(expIndex)
+    main(expIndex, expDir)
