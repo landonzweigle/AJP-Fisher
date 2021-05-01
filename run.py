@@ -36,7 +36,7 @@ def main(runnerName):
                 print("skipping experiment %d" % realIdx)
                 continue
 
-            subprocess.Popen(["./gradlew", "run"],stdout=FNULL, stderr=subprocess.STDOUT)
+            subprocess.Popen([".\gradlew.bat", "run"],stdout=FNULL, stderr=subprocess.STDOUT)
             time.sleep(5)
             print("Running experiment:", line)
 

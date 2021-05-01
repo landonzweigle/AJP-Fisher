@@ -59,16 +59,16 @@ def main(runnerName):
         experiments.addExperiment(150, 2500, [500, 250], 200, 0.01, 0.8)
         experiments.addExperiment(150, 2500, [100, 35, 100], 300, 0.01, 0.8)
         experiments.addExperiment(150, 2500, [500, 250, 500], 300, 0.01, 0.8)
-        experiments.addExperiment(1000, 2500, [500], 100, 0.01, 0.8)
-        experiments.addExperiment(1000, 2500, [35, 100, 35], 300, 0.01, 0.8)
+        experiments.addExperiment(750, 1000, [500], 100, 0.01, 0.8)
+        experiments.addExperiment(1000, 1000, [35, 100, 35], 300, 0.01, 0.8)
     elif runnerName == "landon":
         experiments.addExperiment(150, 2500, [5], 100, 0.01, 0.8)
         experiments.addExperiment(150, 2500, [500], 100, 0.01, 0.8)
         experiments.addExperiment(150, 2500, [250, 500], 200, 0.01, 0.8)
         experiments.addExperiment(150, 2500, [35, 100, 35], 300, 0.01, 0.8)
         experiments.addExperiment(150, 2500, [100, 250, 100], 300, 0.01, 0.8)
-        experiments.addExperiment(1000, 2500, [5], 100, 0.01, 0.8)
-        experiments.addExperiment(1000, 2500, [100, 100], 200, 0.01, 0.8)
+        experiments.addExperiment(750, 1000, [5], 100, 0.01, 0.8)
+        experiments.addExperiment(1000, 1000, [100, 100], 200, 0.01, 0.8)
 
     csvPath.mkdir(parents=True, exist_ok=True) #make the dir if it doesnt exist.
     df = experiments.toDict()
