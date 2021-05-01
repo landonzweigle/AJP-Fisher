@@ -21,9 +21,14 @@ expNtmp = "EXP_%d/"
 RLNNDumpName = "RLNN.dump"
 
 myDir = Path(os.path.join(expDir, "default/"))
+
+
+
 doDebug = False
 
-
+################################################
+# Set up standardization
+################################################
 
 def sampleSTD(values, avg):
     sqrSum = sum([(val - avg)**2 for val in values])
@@ -56,11 +61,11 @@ Tstd = [stdRein]
 #SPECIFIC ML VARS:
 ####################
 
-framesPerTrial = 10 #amount in frames
-nTrials = 5
+framesPerTrial = 50 #amount in frames
+nTrials = 500
 
 nHidden = [100]
-n_epochs = 50
+n_epochs = 400
 learningRate = 0.01
 
 Epsilon = 1.
@@ -73,7 +78,11 @@ n_inputs = 5 #{deltaP, deltaV, action} or {bobberPos, fishPos, bobberVel, fishVe
 DQN = None
 ####################
 
+
 resetScenePerTrial = False
+
+averageNTrialSplits = 10 # split the trials into 15 for the average range (ie if nTrials = 2500; 2500 * (1/15) = ceiling(166.66667); )
+avgNTrialsRange = nTrials // averageNTrialSplits
 
 
 def runFrameByFrame(JPC):
@@ -206,12 +215,26 @@ def saveLastNActionStatePairs(nToSave, actionStatePairs):
     df = pds.DataFrame(actionStatePairs[-nToSave:], columns = ["bobber pos", "fish pos", "bobber vel", "fish vel", "action taken"])
     df.to_csv(out)
 
+
 def savePlot(meanReinforcements):
     toSave = "meanReinByTrial.png"
     out = os.path.join(myDir, toSave)
 
-    plt.plot(meanReinforcements)
+    meanReinforcements = np.array(meanReinforcements)
+
+    nAverages = np.array(np.array_split(meanReinforcements, averageNTrialSplits)).T
+    positions = [(avgNTrialsRange/2) + (avgNTrialsRange * i) for i in range(averageNTrialSplits)]
+
+    plt.boxplot(nAverages, positions=positions, widths=1, manage_ticks=False)
+    plt.plot(range(1, len(meanReinforcements)+1), meanReinforcements, alpha=0.5)
+
+    binSize = 20
+    smoothed = np.mean(meanReinforcements.reshape((int(nTrials / binSize), binSize)), axis=1)
+    plt.plot(np.arange(1, 1 + int(nTrials / binSize)) * binSize, smoothed)
+
     plt.savefig(out)
+
+
 
 
 
@@ -239,7 +262,7 @@ def main(expIndex=None, expDir=expDir):
         debug(expr)
     
     #do the plotting setup:
-    ax = plt.figure().gca()
+    ax = plt.figure(figsize=(15,5)).gca()
     ax.xaxis.set_major_locator(MaxNLocator(integer=True))
     plt.ylim([-1,4])
     plt.grid()
@@ -255,6 +278,7 @@ def main(expIndex=None, expDir=expDir):
 
     debug("\n-----------------------------------------------------")
     r, rLast2 = runFrameByFrame(JPC)
+
 
 def debug(*toPrint, sep=" "):
     if(doDebug):
