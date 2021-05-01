@@ -170,9 +170,9 @@ def runFrameByFrame(JPC):
 
             if(resetScenePerTrial):
                 msgToSend = 5
+                s = initState
+                a, _ign = DQN.EpsilonGreedyUse(s)
 
-            s = initState
-            a, _ign = DQN.EpsilonGreedyUse(s)
 
         else:
             msgToSend = 10
