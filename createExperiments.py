@@ -73,7 +73,7 @@ def main(runnerName):
 		experiments.addExperiment(30, 3333, [50,50], 300, 0.01, 0.8)
 		experiments.addExperiment(30, 1667, [50], 100, 0.01, 0.8)
 		experiments.addExperiment(30, 6666, [20], 100, 0.01, 0.8)
-	elif runnerName == "keegan"
+	elif runnerName == "keegan":
 		experiments.addExperiment(5, 20000, [50], 100, 0.01, 0.8)
 		experiments.addExperiment(5, 10000, [80,20,80], 100, 0.01, 0.8)
 		experiments.addExperiment(5, 40000, [20,80,20], 200, 0.01, 0.8)
