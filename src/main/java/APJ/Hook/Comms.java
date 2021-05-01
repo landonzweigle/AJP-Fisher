@@ -13,6 +13,8 @@ import APJ.Fisher.Sprite;
 public class Comms extends Thread{
 	class GameState{
 		
+		boolean colliding;
+		
 		int bobberPos;
 		int bobberVel;
 		
@@ -24,12 +26,14 @@ public class Comms extends Thread{
 		
 		//deltaX: the vector from bobber.posY to fish.posY.
 		//deltaX: the vector from bobber.velY to fish.velY.
-		public GameState(int bobberPos, int fishPos, int bobberVel, int fishVel) { 
+		public GameState(int bobberPos, int fishPos, int bobberVel, int fishVel, boolean colliding) { 
 			this.bobberPos = bobberPos;
 			this.bobberVel = bobberVel;
 			
 			this.fishPos = fishPos;
 			this.fishVel = fishVel;
+			
+			this.colliding = colliding;
 			
 			this.deltaP = fishPos - bobberPos;
 			this.deltaV = fishVel - bobberVel;
@@ -37,7 +41,7 @@ public class Comms extends Thread{
 		
 //		This is what is ultimately sent to python as the state.
 		public String toString() {
-			String _ret = "<bP: %s, fP: %s, bV: %s, fV: %s>";
+			String _ret = "<bP: %s, fP: %s, bV: %s, fV: %s, col: %s>";
 			_ret = String.format(_ret, this.bobberPos, this.fishPos, this.bobberVel, this.fishVel);
 			return _ret;
 		}
@@ -156,8 +160,10 @@ public class Comms extends Thread{
 		Sprite CA = FishGame.CA;
 		Sprite Fish = FishGame.fish;
 		
+		
+		
 		//vector is defined as: target - origin.
-		GameState _ret = new GameState((int)CA.getY(), (int)Fish.getY(), (int)CA.getyVel(), (int)Fish.getyVel());
+		GameState _ret = new GameState((int)CA.getY(), (int)Fish.getY(), (int)CA.getyVel(), (int)Fish.getyVel(), Fish.collidingWith(CA));
 		return _ret;		
 	}
 	

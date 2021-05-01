@@ -15,6 +15,7 @@ import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.media.AudioClip;
 import javafx.scene.paint.Color;
@@ -196,7 +197,7 @@ public class FishGame extends Application {
 	
 	
 	
-	static final boolean useComms = true;
+	static final boolean useComms = false;
 	
 	public static final FrameMode framemode = FrameMode.FrameAtTime;
 	public static final GameMode gamemode = GameMode.SafePractice;
@@ -279,7 +280,7 @@ public class FishGame extends Application {
 		CA.setMinH(35);
 		
 		// Set base fish information
-		fish.setPos(852, startPos);
+		fish.setPos(862, startPos);
 		fish.setyVel(0);
 		fish.setHeight((int) fish.getImg().getHeight());
 		fish.setWidth((int) fish.getImg().getWidth());
@@ -326,6 +327,7 @@ public class FishGame extends Application {
 	
 	
 	// EveryOne
+	@SuppressWarnings("unused")
 	@Override
 	public void start(Stage stage) throws Exception {
 		isRunning = true;
@@ -369,16 +371,25 @@ public class FishGame extends Application {
 		
 	
 // ---------------------Get Mouse Events-------------------//
+		sc.setOnKeyPressed(event -> {
+			if(event.getCode() == KeyCode.ENTER && useComms==false) {
+				try {
+					nextFrame();
+				} catch (Exception e) {}
+			}
+		});
 		sc.setOnMousePressed(event -> {
-			if (event.getButton() == MouseButton.PRIMARY) {
+			if (event.getButton() == MouseButton.PRIMARY && useComms==false) {
 				// if the player is left clicking, set isClicked to true so the fish can raise.
 				reelIn = true;
 				isClicked = true;
 			}
 		});
 		sc.setOnMouseReleased(event -> {
-			isClicked = false;
-			reelIn = false;
+			if(event.getButton()==MouseButton.PRIMARY && useComms==false) {
+				isClicked = false;
+				reelIn = false;
+			}
 		});
 
 // ----------------Animation Hub------------------//
