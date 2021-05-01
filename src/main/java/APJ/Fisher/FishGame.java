@@ -493,8 +493,8 @@ public class FishGame extends Application {
 				}else if (mode == 1) {					
 					gc.drawImage(MINIGAME, 0, 0);
 					// Generate time since last frame.
-					double deltaT = (now - lastTime) / 1000000000.0;
-
+					//if framebyframe simulate 60 fps. otherwise use real deltaT.
+					double deltaT = (framemode == FrameMode.FrameAtTime)?.166666:(now - lastTime) / 1000000000.0;
 
 					// Determine the fishes movement.
 					double newVel = detMove();
