@@ -73,11 +73,10 @@ finalEpsilon = 0.0001
 epsilon_decay =  np.exp(np.log(finalEpsilon) / nTrials)
 gamma = 0.8
 
-
-n_inputs = 5 #{deltaP, deltaV, action} or {bobberPos, fishPos, bobberVel, fishVel, action}
+expectedState = ["deltaP", "bobberNormalizedVel", "fishNormalizedVel"]
+n_inputs =  len( expectedState) + 1 #add 1 to the expected state for the action.
 DQN = None
 ####################
-
 
 resetScenePerTrial = False
 

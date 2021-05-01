@@ -41,8 +41,15 @@ public class Comms extends Thread{
 		
 //		This is what is ultimately sent to python as the state.
 		public String toString() {
-			String _ret = "<bP: %s, fP: %s, bV: %s, fV: %s, col: %s>";
-			_ret = String.format(_ret, this.bobberPos, this.fishPos, this.bobberVel, this.fishVel);
+			
+			int bobberSimVel = (bobberVel!=0)? bobberVel / Math.abs(bobberVel) : 0; //normalized bobber velocity
+			int fishSimVel   =  (fishVel!=0) ?  fishVel  /  Math.abs(fishVel)  : 0; //normalized fish velocity
+
+			int nDeltaP = (deltaP!=0) ? deltaP / Math.abs(deltaP) : 0;
+			nDeltaP = (this.colliding) ? 0 : nDeltaP;
+			
+			String _ret = "<deltaP: %s, bSV: %s, fSV: %s";
+			_ret = String.format(_ret, nDeltaP, bobberSimVel, fishSimVel);
 			return _ret;
 		}
 	}
