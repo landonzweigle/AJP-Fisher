@@ -132,7 +132,7 @@ public class FishGame extends Application {
 
 	// position to display the name
 	public static int[] namePos = new int[] { 769, 400 };
-	// positino to display the difficulty.
+	// position to display the difficulty.
 	public static int[] difPos = new int[] { 769, 551 };
 	// The record amount of fish that have ever been caught.
 	public static int recordFish = 0;
@@ -197,7 +197,7 @@ public class FishGame extends Application {
 	
 	
 	
-	static final boolean useComms = false;
+	static final boolean useComms = true;
 	
 	public static final FrameMode framemode = FrameMode.FrameAtTime;
 	public static final GameMode gamemode = GameMode.SafePractice;
@@ -241,9 +241,11 @@ public class FishGame extends Application {
 	// Used whenever we need to reset the sprites.
 	// Parameters: none
 	// Returns: none.
-	public static void startGame() {
+	public static void startGame(boolean randomPositions) {
 		
-		rng = new Random(42424242);
+		ttc = 0;
+		actualManditoryWait = 0;
+		
 		
 		// Set the images.
 		FISHLOSE = new Image(ClassLoader.getSystemClassLoader().getResource("You Lost the Fish0.png").toString(), 1280,
@@ -269,10 +271,14 @@ public class FishGame extends Application {
 		
 		fish.setImg(new Image(ClassLoader.getSystemClassLoader().getResource("fish.png").toString(), 300, 75, true, false));
 
-		int startPos = 560; //They should start together for realism ;)
+		int maxH = 687;
+		int minH = 35;
+		int caStartPos = (randomPositions)?rng.nextInt(maxH-minH) + minH : 560; //They should start together for realism ;)
+		int fishStartPos = (randomPositions)?rng.nextInt(maxH-minH) + minH : 560; //They should start together for realism ;)
+		
 		
 		// Set base Capture area information
-		CA.setPos(862, startPos); //OG: 862, -100
+		CA.setPos(862, caStartPos); //OG: 862, -100
 		CA.setyVel(0);
 		CA.setHeight((int) CA.getImg().getHeight());
 		CA.setWidth((int) CA.getImg().getWidth());
@@ -280,7 +286,7 @@ public class FishGame extends Application {
 		CA.setMinH(35);
 		
 		// Set base fish information
-		fish.setPos(862, startPos);
+		fish.setPos(862, fishStartPos);
 		fish.setyVel(0);
 		fish.setHeight((int) fish.getImg().getHeight());
 		fish.setWidth((int) fish.getImg().getWidth());
@@ -302,6 +308,8 @@ public class FishGame extends Application {
 			dtInfo[i] = 0;
 		}
 		
+		rng = new Random(42424242);
+		
 		if (useComms) {
 			FishGame.args = args;
 			Comms comms = new Comms();
@@ -319,7 +327,7 @@ public class FishGame extends Application {
 			}
 			
 		}else {
-			startGame();
+			startGame(false);
 			launchGame();
 		}
 	}
@@ -494,7 +502,7 @@ public class FishGame extends Application {
 					gc.drawImage(MINIGAME, 0, 0);
 					// Generate time since last frame.
 					//if framebyframe simulate 60 fps. otherwise use real deltaT.
-					double deltaT = (framemode == FrameMode.FrameAtTime)?.166666:(now - lastTime) / 1000000000.0;
+					double deltaT = (framemode == FrameMode.FrameAtTime)?0.01667:(now - lastTime) / 1000000000.0;
 
 					// Determine the fishes movement.
 					double newVel = detMove();
@@ -545,10 +553,10 @@ public class FishGame extends Application {
 						myPoints = CAPTUREPOINTS / 2;
 						firstNoise = true;
 						actualManditoryWait = System.currentTimeMillis() + manditoryWait;
-						startGame();
+						startGame(false);
 					} else if (myPoints <= 0 && gamemode!=GameMode.SafePractice) {
 						//Fish was Lost.
-						startGame();
+						startGame(false);
 						actualManditoryWait = System.currentTimeMillis() + manditoryWait;
 						// go into lose mode method
 						fishLost++;
