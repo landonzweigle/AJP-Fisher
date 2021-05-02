@@ -11,9 +11,10 @@ import sys, random
 
 class RLNeuralNetwork():
 
-    def __init__(self, validActions, Epsilon, n_inputs, n_hiddens_per_layer, n_outputs, activation_function='tanh'):
+    def __init__(self, validActions, Epsilon, EpsilonDecay, n_inputs, n_hiddens_per_layer, n_outputs, activation_function='tanh'):
         self.validActions = validActions
         self.Epsilon = Epsilon
+        self.EpsilonDecay = EpsilonDecay
         self.n_inputs = n_inputs
         self.n_outputs = n_outputs
         self.activation_function = activation_function
@@ -181,6 +182,10 @@ class RLNeuralNetwork():
         self.Xstds = np.array(Xstds)
         self.Tmeans = np.array(Tmeans)
         self.Tstds = np.array(Tstds)
+
+
+    def decayEpsilon(self):
+        self.Epsilon *= self.EpsilonDecay
 
 
     def EpsilonGreedyUse(self, state):   

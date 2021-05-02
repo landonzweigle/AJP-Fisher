@@ -56,7 +56,7 @@ Tstd = [stdRein]
 ####################
 
 framesPerTrial = 25
-nTrials = 5000
+nTrials = 1000
 
 nHidden = [25]
 n_epochs = 400
@@ -174,7 +174,7 @@ def runFrameByFrame(JPC):
             if trialTracker > nTrials - 3:
                 r_last_2 += curSome
            
-            epsilon *= epsilon_decay
+            DQN.decayEpiilon
             DQN.train(X, T, n_epochs, learningRate, method='sgd', verbose=False)
 
             #Reset trackers:
@@ -229,10 +229,14 @@ def savePlot(meanReinforcements):
 
     meanReinforcements = np.array(meanReinforcements)
 
-    nAverages = np.array(np.array_split(meanReinforcements, averageNTrialSplits)).T
-    positions = [(avgNTrialsRange/2) + (avgNTrialsRange * i) for i in range(averageNTrialSplits)]
+    try:
+        nAverages = np.array(np.array_split(meanReinforcements, averageNTrialSplits)).T
+        positions = [(avgNTrialsRange/2) + (avgNTrialsRange * i) for i in range(averageNTrialSplits)]
 
-    plt.boxplot(nAverages, positions=positions, widths=1, manage_ticks=False)
+        plt.boxplot(nAverages, positions=positions, widths=1, manage_ticks=False)
+    except:
+        pass
+    
     plt.plot(range(1, len(meanReinforcements)+1), meanReinforcements, alpha=0.5)
 
     binSize = 20
