@@ -189,18 +189,18 @@ class RLNeuralNetwork():
             
         else:
             actions_randomly_ordered = random.sample(self.validActions, len(self.validActions))
-            Qs = [self.use(np.array([state+[a]])) for a in actions_randomly_ordered]
+            Qs = [self.use(np.hstack((state, a)).reshape((1, -1))) for a in self.validActions]
             ai = np.argmin(Qs)
             action = actions_randomly_ordered[ai]
             
-        Q = self.use(np.array([state + [action]]))
+        Q = self.use(np.hstack((state, action)).reshape((1, -1)))
         
         return action, Q   # return the chosen action and Q(state, action)
 
     #(Try to minimize this; the best case is #0 and the worst is case #-1):
     #returns:
-    #r1: 0 if posA==posB (deltaP == 0) AND velA==velB (deltaV==0)
-    #r2: 1 if posA==posB (deltaP == 0) AND velA!=velB (deltaV != 0)
+    #r1: 0 if posA==posB (deltaP == 0) AND velA==velB
+    #r2: 1 if posA==posB (deltaP == 0) AND velA!=velB 
     #r3: 2 if posA!=posB (deltaP != 0) AND deltaV < 0 (approaching target)
     #r4: 3 if posA!=posB (deltaP != 0) and velA==velB (deltaV == 0)
     #reasoning:
@@ -211,32 +211,16 @@ class RLNeuralNetwork():
 
     @staticmethod
     def getReinforcement(state):
-        bobberPos, fishPos, bobberVel, fishVel = state
-        
-        relPos = fishPos - bobberPos
-        range = abs(relPos)
-        # relVel = abs(fishVel - bobberVel)
-        vSign = bobberVel * fishVel
+        deltaP, bobberVel, fishVel = state
 
-        bColliding = (range <= 75)
-
-        if(bColliding):
-            if(vSign < 0):
-                #moving away and colliding
-                return 1
-            elif (vSign >= 0):
-                #moving together and colliding
+        if(deltaP==0):
+            if(fishVel==bobberVel):
                 return 0
-            return 100
-
+            else:
+                return 1
         else:
-            relPosVelSign = bobberVel * relPos
-            if(relPosVelSign < 0):
-                #moving away from fish and not colliding
-                return 3
-            elif(relPosVelSign > 0):
-                #moving towards fish and not colliding
+            if(deltaP==bobberVel):
                 return 2
             else:
-                #not moving and not colliding
                 return 3
+        
