@@ -45,8 +45,8 @@ error_convert_f: function that converts the standardized error from error_f to o
                 error = error_convert_f(error)
             error_trace.append(error)
 
-            if verbose and ((epoch + 1) % max(1, epochs_per_print) == 0):
-                print(f'sgd: Epoch {epoch+1:d} Error={error:.5f}')
+            # if verbose and ((epoch + 1) % max(1, epochs_per_print) == 0):
+                # print(f'sgd: Epoch {epoch+1:d} Error={error:.5f}')
 
         return error_trace
 
@@ -83,8 +83,8 @@ error_convert_f: function that converts the standardized error from error_f to o
                 error = error_convert_f(error)
             error_trace.append(error)
 
-            if verbose and ((epoch + 1) % max(1, epochs_per_print) == 0):
-                print(f'Adam: Epoch {epoch+1:d} Error={error:.5f}')
+            # if verbose and ((epoch + 1) % max(1, epochs_per_print) == 0):
+            #     print(f'Adam: Epoch {epoch+1:d} Error={error:.5f}')
 
         return error_trace
 
