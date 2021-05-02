@@ -48,8 +48,10 @@ public class Comms extends Thread{
 			int nDeltaP = (deltaP!=0) ? deltaP / Math.abs(deltaP) : 0;
 			nDeltaP = (this.colliding) ? 0 : nDeltaP;
 			
-			String _ret = "<bP: %s, fP: %s, bSV: %s, fSV: %s>";
-			_ret = String.format(_ret, this.bobberPos, this.fishPos, bobberSimVel, fishSimVel);
+			int col = (colliding==true)? 1 : 0;
+			
+			String _ret = "<bP: %s, fP: %s, bSV: %s, fSV: %s, col: %s>";
+			_ret = String.format(_ret, this.bobberPos, this.fishPos, bobberSimVel, fishSimVel, col);
 			return _ret;
 		}
 	}

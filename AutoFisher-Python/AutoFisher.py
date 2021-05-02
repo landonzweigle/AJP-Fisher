@@ -4,6 +4,8 @@ import os
 from pathlib import Path
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
+from numpy.lib.financial import fv
+from numpy.lib.ufunclike import fix
 
 
 import RLNN, math, sys
@@ -34,7 +36,10 @@ def sampleSTD(values, avg):
     div = sqrSum / (len(values) - 1)
     return math.sqrt(div)
 
+col = [0, 1]
+
 deltaP = [-1, 0, 1]
+nPos = [-1, 0, 1]
 nVel = [-1, 0, 1]
 
 validActions = [0,1] #[reel out, reel in]
@@ -47,8 +52,8 @@ stdRein = np.std(reinforcements)    #1.118
 
 
 
-Xmeans = [np.mean(x) for x in [deltaP, nVel, nVel, validActions]]
-Xstds = [np.std(x) for x in [deltaP, nVel, nVel, validActions]]
+Xmeans = [np.mean(x) for x in [nPos, nPos, nVel, nVel, col, validActions]]
+Xstds = [np.std(x) for x in [nPos, nPos, nVel, nVel, col, validActions]]
 Tmean = [meanRein]
 Tstd = [stdRein]
 ####################
@@ -67,7 +72,7 @@ finalEpsilon = 0.0001
 epsilon_decay =  np.exp(np.log(finalEpsilon) / nTrials)
 gamma = 0.8
 
-expectedState = ["deltaP", "bobberNormalizedVel", "fishNormalizedVel"]
+expectedState = ["bobber pos", "fish pos", "bobberNormalizedVel", "fishNormalizedVel", "colliding"]
 n_inputs =  len( expectedState) + 1 #add 1 to the expected state for the action.
 DQN = None
 ####################
@@ -84,6 +89,13 @@ doDebug = False
 
 
 def runFrameByFrame(JPC):
+    def getFixedState(state):
+        bPos, fPos, bVel, fVel, col = state
+        
+        fbPos = (bPos /  abs(bPos) if(bPos != 0) else 0) if( not col ) else 0
+        ffPos = (fPos /  abs(fPos) if(fPos != 0) else 0) if( not col ) else 0
+        return fbPos, ffPos, bVel, fVel, col
+
     print("running %s total frames" % (nTrials * framesPerTrial))
     print("ExperimentArgs:")
     print(framesPerTrial, nTrials, nHidden, n_epochs, learningRate, gamma,sep='\n')
@@ -107,6 +119,9 @@ def runFrameByFrame(JPC):
     initStateStr = arrr[1:-1].split(',');
     initState = list([int(val.split(':')[-1]) for val in initStateStr])
     s = initState
+    
+    fixedState = getFixedState(s)
+
     a, _ign = DQN.EpsilonGreedyUse(s)
 
     meanRein = []
@@ -120,6 +135,9 @@ def runFrameByFrame(JPC):
             nState = JPC.recvStr()[1:-1].split(',');
             nState = list([int(val.split(':')[-1]) for val in nState])
             s = nState
+
+            # fixedState = getFixedState(s)
+
             a, _ign = DQN.EpsilonGreedyUse(s)
 
         step = (frameCount-1) % framesPerTrial
@@ -128,18 +146,20 @@ def runFrameByFrame(JPC):
         if(allGood != 10):
             raise Exception("Java encountered an error")
 
-        #get the state:
-        stateStr = JPC.recvStr()
+        
         #################
         # MAIN LOOP
         #################
         
-        #state is in the formate <deltaP, deltaV>
+        #get the state:
+        stateStr = JPC.recvStr()
+        #state is in the formate <s_0, s_1, s_2 ... s_n-1, s_n>
         state = stateStr[1:-1].split(',')
         state = list([int(val.split(':')[-1]) for val in state])
+        fixedState = getFixedState(state)
         sn = state
 
-        rn = DQN.getReinforcement(state)    # Calculate resulting reinforcement
+        rn = DQN.getReinforcement(fixedState)    # Calculate resulting reinforcement
         an, qn = DQN.EpsilonGreedyUse(state)  # choose next action
         X[step, :] = np.hstack((s, a))
         R[step, 0] = rn
@@ -219,7 +239,7 @@ def saveResults(R, R_last2):
 def saveLastNActionStatePairs(nToSave, actionStatePairs):
     toSave = "ActionState.csv"
     out = os.path.join(myDir,toSave)
-    df = pds.DataFrame(actionStatePairs[-nToSave:], columns = ["deltaP", "bobber normal vel", "fish normal vel", "action taken"])
+    df = pds.DataFrame(actionStatePairs[-nToSave:], columns = (expectedState + ["action taken"]))
     df.to_csv(out)
 
 
