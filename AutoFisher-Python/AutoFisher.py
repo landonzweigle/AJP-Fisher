@@ -242,7 +242,7 @@ def savePlot(meanReinforcements):
     nTicks = 10
     tickIncrement = nTrials / nTicks
 
-    plt.xticks(np.arange(1,nTrials+1000000,tickIncrement))
+    plt.xticks(np.arange(1,len(meanReinforcements)+100,tickIncrement))
     plt.savefig(out)
 
 
