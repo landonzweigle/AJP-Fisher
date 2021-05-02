@@ -13,6 +13,8 @@ import APJ.Fisher.Sprite;
 public class Comms extends Thread{
 	class GameState{
 		
+		boolean colliding;
+		
 		int bobberPos;
 		int bobberVel;
 		
@@ -24,12 +26,14 @@ public class Comms extends Thread{
 		
 		//deltaX: the vector from bobber.posY to fish.posY.
 		//deltaX: the vector from bobber.velY to fish.velY.
-		public GameState(int bobberPos, int fishPos, int bobberVel, int fishVel) { 
+		public GameState(int bobberPos, int fishPos, int bobberVel, int fishVel, boolean colliding) { 
 			this.bobberPos = bobberPos;
 			this.bobberVel = bobberVel;
 			
 			this.fishPos = fishPos;
 			this.fishVel = fishVel;
+			
+			this.colliding = colliding;
 			
 			this.deltaP = fishPos - bobberPos;
 			this.deltaV = fishVel - bobberVel;
@@ -37,8 +41,15 @@ public class Comms extends Thread{
 		
 //		This is what is ultimately sent to python as the state.
 		public String toString() {
-			String _ret = "<bP: %s, fP: %s, bV: %s, fV: %s>";
-			_ret = String.format(_ret, this.bobberPos, this.fishPos, this.bobberVel, this.fishVel);
+			
+			int bobberSimVel = (bobberVel!=0)? bobberVel / Math.abs(bobberVel) : 0; //normalized bobber velocity
+			int fishSimVel   =  (fishVel!=0) ?  fishVel  /  Math.abs(fishVel)  : 0; //normalized fish velocity
+
+			int nDeltaP = (deltaP!=0) ? deltaP / Math.abs(deltaP) : 0;
+			nDeltaP = (this.colliding) ? 0 : nDeltaP;
+			
+			String _ret = "<deltaP: %s, bSV: %s, fSV: %s>";
+			_ret = String.format(_ret, nDeltaP, bobberSimVel, fishSimVel);
 			return _ret;
 		}
 	}
@@ -102,7 +113,7 @@ public class Comms extends Thread{
 				}
 				
 				FishGame.print("Starting game...\n");
-				FishGame.startGame(); //Start the game.	
+				FishGame.startGame(true); //Start the game.	
 				FrameByFramePlayGame();
 				FishGame.stopPlaying();
 			}else {
@@ -124,9 +135,14 @@ public class Comms extends Thread{
 		int recvMsg;
 		GameState initState = getGameState();
 		sendStr(initState.toString());
+		
+		FishGame.nextFrame();
 		while((recvMsg=recvInt())!=0) {
 			if(recvMsg==10) {}else if(recvMsg==5) {
-				FishGame.startGame();
+				FishGame.startGame(true);
+				initState = getGameState();
+				sendStr(initState.toString());
+				FishGame.nextFrame();
 			}
 			//Wait until frame processed:
 			while(!FishGame.isFrameProccessed()) {}
@@ -135,8 +151,6 @@ public class Comms extends Thread{
 			sendInt(10);
 			
 			GameState curState = getGameState();
-
-			
 			
 			String state = curState.toString();
 			sendStr(state);
@@ -156,8 +170,10 @@ public class Comms extends Thread{
 		Sprite CA = FishGame.CA;
 		Sprite Fish = FishGame.fish;
 		
+		
+		
 		//vector is defined as: target - origin.
-		GameState _ret = new GameState((int)CA.getY(), (int)Fish.getY(), (int)CA.getyVel(), (int)Fish.getyVel());
+		GameState _ret = new GameState((int)CA.getY(), (int)Fish.getY(), (int)CA.getyVel(), (int)Fish.getyVel(), Fish.collidingWith(CA));
 		return _ret;		
 	}
 	

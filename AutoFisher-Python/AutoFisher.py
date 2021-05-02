@@ -24,7 +24,6 @@ myDir = Path(os.path.join(expDir, "default/"))
 
 
 
-doDebug = False
 
 ################################################
 # Set up standardization
@@ -35,57 +34,57 @@ def sampleSTD(values, avg):
     div = sqrSum / (len(values) - 1)
     return math.sqrt(div)
 
-minH = 35
-maxH = 687
-meanH = (minH+maxH)/2
-stdH = sampleSTD([minH,maxH], meanH)
-
-minV = -1000
-maxV = 1000
-meanV = (minV + maxV)/2
-stdV = sampleSTD([minV, maxV], meanV)
+deltaP = [-1, 0, 1]
+nVel = [-1, 0, 1]
 
 validActions = [0,1] #[reel out, reel in]
 meanAct = 0.5
 stdAct = 0.5
 
 reinforcements = [0,1,2,3]
-meanRein = 1.5
-stdRein = 1.118
+meanRein = np.mean(reinforcements)  #1.5
+stdRein = np.std(reinforcements)    #1.118
 
-Xmeans = [meanH, meanH, meanV, meanV, meanAct]
-Xstds = [stdH, stdH, stdV, stdV, stdAct]
+
+
+Xmeans = [np.mean(x) for x in [deltaP, nVel, nVel, validActions]]
+Xstds = [np.std(x) for x in [deltaP, nVel, nVel, validActions]]
 Tmean = [meanRein]
 Tstd = [stdRein]
 ####################
 #SPECIFIC ML VARS:
 ####################
 
-framesPerTrial = 50 #amount in frames
-nTrials = 500
+framesPerTrial = 50
+nTrials = 2500
 
-nHidden = [100]
+nHidden = [25]
 n_epochs = 400
-learningRate = 0.01
+learningRate = 0.05
 
 Epsilon = 1.
 finalEpsilon = 0.0001
 epsilon_decay =  np.exp(np.log(finalEpsilon) / nTrials)
 gamma = 0.8
 
-
-n_inputs = 5 #{deltaP, deltaV, action} or {bobberPos, fishPos, bobberVel, fishVel, action}
+expectedState = ["deltaP", "bobberNormalizedVel", "fishNormalizedVel"]
+n_inputs =  len( expectedState) + 1 #add 1 to the expected state for the action.
 DQN = None
 ####################
 
+##########
+# Misc:
+###########
 
-resetScenePerTrial = False
+resetScenePerTrial = True
 
 averageNTrialSplits = 10 # split the trials into 15 for the average range (ie if nTrials = 2500; 2500 * (1/15) = ceiling(166.66667); )
 avgNTrialsRange = nTrials // averageNTrialSplits
+doDebug = False
 
 
 def runFrameByFrame(JPC):
+    print("running %s total frames" % (nTrials * framesPerTrial))
     print("ExperimentArgs:")
     print(framesPerTrial, nTrials, nHidden, n_epochs, learningRate, gamma,sep='\n')
     FramesToPlay = framesPerTrial * nTrials
@@ -104,7 +103,8 @@ def runFrameByFrame(JPC):
     frameCount = 1
     msgToSend = 10
 
-    initStateStr = JPC.recvStr()[1:-1].split(',');
+    arrr = JPC.recvStr()
+    initStateStr = arrr[1:-1].split(',');
     initState = list([int(val.split(':')[-1]) for val in initStateStr])
     s = initState
     a, _ign = DQN.EpsilonGreedyUse(s)
@@ -112,8 +112,15 @@ def runFrameByFrame(JPC):
     meanRein = []
     pastStateActions = []
 
+    resetMsg = 5
+
     while(frameCount <= FramesToPlay):
         JPC.sendInt(msgToSend)
+        if(msgToSend==resetMsg):
+            nState = JPC.recvStr()[1:-1].split(',');
+            nState = list([int(val.split(':')[-1]) for val in nState])
+            s = nState
+            a, _ign = DQN.EpsilonGreedyUse(s)
 
         step = (frameCount-1) % framesPerTrial
         #make sure that the frame has processed:
@@ -123,7 +130,6 @@ def runFrameByFrame(JPC):
 
         #get the state:
         stateStr = JPC.recvStr()
-        
         #################
         # MAIN LOOP
         #################
@@ -135,7 +141,7 @@ def runFrameByFrame(JPC):
 
         rn = DQN.getReinforcement(state)    # Calculate resulting reinforcement
         an, qn = DQN.EpsilonGreedyUse(state)  # choose next action
-        X[step, :] = s + [a]
+        X[step, :] = np.hstack((s, a))
         R[step, 0] = rn
         Qn[step, 0] = qn
         s, a = sn, an
@@ -168,7 +174,7 @@ def runFrameByFrame(JPC):
             if trialTracker > nTrials - 3:
                 r_last_2 += curSome
            
-            epsilon *= epsilon_decay
+            DQN.decayEpsilon()
             DQN.train(X, T, n_epochs, learningRate, method='sgd', verbose=False)
 
             #Reset trackers:
@@ -178,7 +184,7 @@ def runFrameByFrame(JPC):
 
 
             if(resetScenePerTrial):
-                msgToSend = 5
+                msgToSend = resetMsg
                 s = initState
                 a, _ign = DQN.EpsilonGreedyUse(s)
 
@@ -189,13 +195,14 @@ def runFrameByFrame(JPC):
         frameCount += 1
     dumpDir = os.path.join(myDir, "DQN.dump")
     DQN.dump(dumpDir)
+    
+    savePlot(meanRein)
 
     R = r_sum / (nTrials * framesPerTrial)
     R_last2 = r_last_2 / (2 * framesPerTrial)
     saveLastNActionStatePairs(20,pastStateActions)
     saveResults(R, R_last2)
 
-    savePlot(meanRein)
 
     JPC.sendInt(0)
     return R, R_last2
@@ -212,7 +219,7 @@ def saveResults(R, R_last2):
 def saveLastNActionStatePairs(nToSave, actionStatePairs):
     toSave = "ActionState.csv"
     out = os.path.join(myDir,toSave)
-    df = pds.DataFrame(actionStatePairs[-nToSave:], columns = ["bobber pos", "fish pos", "bobber vel", "fish vel", "action taken"])
+    df = pds.DataFrame(actionStatePairs[-nToSave:], columns = ["deltaP", "bobber normal vel", "fish normal vel", "action taken"])
     df.to_csv(out)
 
 
@@ -222,16 +229,24 @@ def savePlot(meanReinforcements):
 
     meanReinforcements = np.array(meanReinforcements)
 
-    nAverages = np.array(np.array_split(meanReinforcements, averageNTrialSplits)).T
-    positions = [(avgNTrialsRange/2) + (avgNTrialsRange * i) for i in range(averageNTrialSplits)]
+    try:
+        nAverages = np.array(np.array_split(meanReinforcements, averageNTrialSplits)).T
+        positions = [(avgNTrialsRange/2) + (avgNTrialsRange * i) for i in range(averageNTrialSplits)]
 
-    plt.boxplot(nAverages, positions=positions, widths=1, manage_ticks=False)
+        plt.boxplot(nAverages, positions=positions, widths=1, manage_ticks=False)
+    except:
+        pass
+
     plt.plot(range(1, len(meanReinforcements)+1), meanReinforcements, alpha=0.5)
 
     binSize = 20
     smoothed = np.mean(meanReinforcements.reshape((int(nTrials / binSize), binSize)), axis=1)
     plt.plot(np.arange(1, 1 + int(nTrials / binSize)) * binSize, smoothed)
 
+    nTicks = 10
+    tickIncrement = nTrials / nTicks
+
+    plt.xticks(np.arange(1,len(meanReinforcements)+100,tickIncrement))
     plt.savefig(out)
 
 
@@ -273,7 +288,7 @@ def main(expIndex=None, expDir=expDir):
 
     JPC = JPComms.JPComms(modesExcpected["TRAIN"])
 
-    DQN = RLNN.RLNeuralNetwork(validActions, Epsilon, n_inputs, nHidden, 1)
+    DQN = RLNN.RLNeuralNetwork(validActions, Epsilon, epsilon_decay, n_inputs, nHidden, 1)
     DQN.createStandards(Xmeans, Xstds, Tmean, Tstd)
 
     debug("\n-----------------------------------------------------")
@@ -282,7 +297,7 @@ def main(expIndex=None, expDir=expDir):
 
 def debug(*toPrint, sep=" "):
     if(doDebug):
-        print(toPrint, sep=sep)
+        print(*toPrint, sep=sep)
 
 if __name__ == "__main__":
     expIndex = None
