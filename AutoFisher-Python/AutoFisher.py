@@ -61,7 +61,7 @@ Tstd = [stdRein]
 ####################
 
 framesPerTrial = 50
-nTrials = 2500
+nTrials = 100
 
 nHidden = [25]
 n_epochs = 400
@@ -85,7 +85,7 @@ resetScenePerTrial = True
 
 averageNTrialSplits = 10 # split the trials into 15 for the average range (ie if nTrials = 2500; 2500 * (1/15) = ceiling(166.66667); )
 avgNTrialsRange = nTrials // averageNTrialSplits
-doDebug = False
+doDebug = True
 
 
 def runFrameByFrame(JPC):
@@ -136,9 +136,9 @@ def runFrameByFrame(JPC):
             nState = list([int(val.split(':')[-1]) for val in nState])
             s = nState
 
-            # fixedState = getFixedState(s)
+            fixedState = getFixedState(s)
 
-            a, _ign = DQN.EpsilonGreedyUse(s)
+            a, _ign = DQN.EpsilonGreedyUse(fixedState)
 
         step = (frameCount-1) % framesPerTrial
         #make sure that the frame has processed:
@@ -159,8 +159,8 @@ def runFrameByFrame(JPC):
         fixedState = getFixedState(state)
         sn = state
 
-        rn = DQN.getReinforcement(fixedState)    # Calculate resulting reinforcement
-        an, qn = DQN.EpsilonGreedyUse(state)  # choose next action
+        rn = DQN.getReinforcement(state)    # Calculate resulting reinforcement
+        an, qn = DQN.EpsilonGreedyUse(fixedState)  # choose next action
         X[step, :] = np.hstack((s, a))
         R[step, 0] = rn
         Qn[step, 0] = qn
@@ -206,7 +206,10 @@ def runFrameByFrame(JPC):
             if(resetScenePerTrial):
                 msgToSend = resetMsg
                 s = initState
-                a, _ign = DQN.EpsilonGreedyUse(s)
+
+                fixedState = getFixedState(s)
+
+                a, _ign = DQN.EpsilonGreedyUse(fixedState)
 
 
         else:

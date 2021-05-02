@@ -221,16 +221,15 @@ class RLNeuralNetwork():
         deltaP = fishPos - bobberPos
         normdeltaP = (deltaP / abs(deltaP) if(deltaP != 0) else 0) if (not colliding) else 0
 
-        
 
-        if(normdeltaP==0):
+        if(colliding):
             if(fishVel==bobberVel):
                 return 0
             else:
                 return 1
         else:
-            percDiff = normdeltaP / (687-35)
-            if(normdeltaP==bobberVel):
+            percDiff = deltaP / (687-35)
+            if(normdeltaP!=bobberVel):
                 return percDiff + 1 #will be betweeen 1 and 2
             else:
                 return 3
