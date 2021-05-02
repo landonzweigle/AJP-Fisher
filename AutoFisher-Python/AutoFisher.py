@@ -232,19 +232,11 @@ def savePlot(meanReinforcements):
     try:
         nAverages = np.array(np.array_split(meanReinforcements, averageNTrialSplits)).T
         positions = [(avgNTrialsRange/2) + (avgNTrialsRange * i) for i in range(averageNTrialSplits)]
-<<<<<<< HEAD
 
         plt.boxplot(nAverages, positions=positions, widths=1, manage_ticks=False)
     except:
         pass
 
-=======
-
-        plt.boxplot(nAverages, positions=positions, widths=1, manage_ticks=False)
-    except:
-        pass
-    
->>>>>>> cf43f8627de1da73ba7f7f07d41dae7dd0873193
     plt.plot(range(1, len(meanReinforcements)+1), meanReinforcements, alpha=0.5)
 
     binSize = 20
