@@ -87,7 +87,7 @@ resetScenePerTrial = True
 
 averageNTrialSplits = 10 # split the trials into 15 for the average range (ie if nTrials = 2500; 2500 * (1/15) = ceiling(166.66667); )
 avgNTrialsRange = nTrials // averageNTrialSplits
-doDebug = True
+doDebug = False
 
 
 def runFrameByFrame(JPC):
