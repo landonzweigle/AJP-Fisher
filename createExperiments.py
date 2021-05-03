@@ -53,7 +53,7 @@ def main(runnerName):
     # framesPerTrial, nTrials, nHiddens, n_epochs, learningRate, gamma
 	
 	# total frame counts = [50000 , 100000 , 200000]
-	# fpt vals = [25,50,75]
+	# fpt vals = [25,50,100]
 	# hidden layer archs = [ [20], [50], [100], [50,50], [30,80], [80,30], [40,40,40], [20,80,20], [80,20,80] ]
 	
     if runnerName == "landon":
@@ -68,11 +68,11 @@ def main(runnerName):
 	    experiments.addExperiment(50, 4000, [50], 200, 0.01, 0.8)
 	    experiments.addExperiment(50, 1000, [80,20,80], 300, 0.01, 0.8)
 	    
-	    experiments.addExperiment(75, 667, [40,40,40], 300, 0.01, 0.8)
-	    experiments.addExperiment(75, 1334, [80,20,80], 300, 0.01, 0.8)
-	    experiments.addExperiment(75, 2667, [50,50], 300, 0.01, 0.8)
-	    experiments.addExperiment(75, 667, [50], 100, 0.01, 0.8)
-	    experiments.addExperiment(75, 1334, [20], 100, 0.01, 0.8)
+	    experiments.addExperiment(100, 500, [40,40,40], 300, 0.01, 0.8)
+	    experiments.addExperiment(100, 1000, [80,20,80], 300, 0.01, 0.8)
+	    experiments.addExperiment(100, 2000, [50,50], 300, 0.01, 0.8)
+	    experiments.addExperiment(100, 500, [50], 100, 0.01, 0.8)
+	    experiments.addExperiment(100, 1000, [20], 100, 0.01, 0.8)
     elif runnerName == "keegan":
 	    experiments.addExperiment(25, 8000, [50], 100, 0.01, 0.8)
 	    experiments.addExperiment(25, 2000, [80,20,80], 100, 0.01, 0.8)
@@ -85,10 +85,10 @@ def main(runnerName):
 	    experiments.addExperiment(50, 2000, [20,80,20], 300, 0.01, 0.8)
 	    experiments.addExperiment(50, 4000, [40,40,40], 300, 0.01, 0.8)
 	    
-	    experiments.addExperiment(75, 2667, [20,80,20], 300, 0.01, 0.8)
-	    experiments.addExperiment(75, 667, [80,30], 100, 0.01, 0.8)
-	    experiments.addExperiment(75, 1334, [30,80], 200, 0.01, 0.8)
-	    experiments.addExperiment(75, 2667, [100], 300, 0.01, 0.8)
+	    experiments.addExperiment(100, 2000, [20,80,20], 300, 0.01, 0.8)
+	    experiments.addExperiment(100, 500, [80,30], 100, 0.01, 0.8)
+	    experiments.addExperiment(100, 1000, [30,80], 200, 0.01, 0.8)
+	    experiments.addExperiment(100, 2000, [100], 300, 0.01, 0.8)
 		
     csvPath.mkdir(parents=True, exist_ok=True) #make the dir if it doesnt exist.
     df = experiments.toDict()
