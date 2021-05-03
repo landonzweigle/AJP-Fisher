@@ -38,6 +38,8 @@ def sampleSTD(values, avg):
 
 col = [0, 1]
 
+pos = [35, 687]
+
 deltaP = [-1, 0, 1]
 nPos = [-1, 0, 1]
 nVel = [-1, 0, 1]
@@ -52,19 +54,19 @@ stdRein = np.std(reinforcements)    #1.118
 
 
 
-Xmeans = [np.mean(x) for x in [nPos, nPos, nVel, nVel, col, validActions]]
-Xstds = [np.std(x) for x in [nPos, nPos, nVel, nVel, col, validActions]]
+Xmeans = [np.mean(x) for x in [pos, pos, nVel, nVel, col, validActions]]
+Xstds = [np.std(x) for x in [pos, pos, nVel, nVel, col, validActions]]
 Tmean = [meanRein]
 Tstd = [stdRein]
 ####################
 #SPECIFIC ML VARS:
 ####################
 
-framesPerTrial = 50
-nTrials = 100
+framesPerTrial = 5
+nTrials = 177
 
-nHidden = [25]
-n_epochs = 400
+nHidden = [80,20,80]
+n_epochs = 200
 learningRate = 0.05
 
 Epsilon = 1.
@@ -136,9 +138,8 @@ def runFrameByFrame(JPC):
             nState = list([int(val.split(':')[-1]) for val in nState])
             s = nState
 
-            fixedState = getFixedState(s)
-
-            a, _ign = DQN.EpsilonGreedyUse(fixedState)
+            # fixedState = getFixedState(s)
+            a, _ign = DQN.EpsilonGreedyUse(s)
 
         step = (frameCount-1) % framesPerTrial
         #make sure that the frame has processed:
@@ -156,11 +157,11 @@ def runFrameByFrame(JPC):
         #state is in the formate <s_0, s_1, s_2 ... s_n-1, s_n>
         state = stateStr[1:-1].split(',')
         state = list([int(val.split(':')[-1]) for val in state])
-        fixedState = getFixedState(state)
+        # fixedState = getFixedState(state)
         sn = state
 
         rn = DQN.getReinforcement(state)    # Calculate resulting reinforcement
-        an, qn = DQN.EpsilonGreedyUse(fixedState)  # choose next action
+        an, qn = DQN.EpsilonGreedyUse(state)  # choose next action
         X[step, :] = np.hstack((s, a))
         R[step, 0] = rn
         Qn[step, 0] = qn
@@ -207,9 +208,9 @@ def runFrameByFrame(JPC):
                 msgToSend = resetMsg
                 s = initState
 
-                fixedState = getFixedState(s)
+                # fixedState = getFixedState(s)
 
-                a, _ign = DQN.EpsilonGreedyUse(fixedState)
+                a, _ign = DQN.EpsilonGreedyUse(s)
 
 
         else:

@@ -228,7 +228,7 @@ class RLNeuralNetwork():
             else:
                 return 1
         else:
-            percDiff = deltaP / (687-35)
+            percDiff = abs(deltaP / (687-35))
             if(normdeltaP!=bobberVel):
                 return percDiff + 1 #will be betweeen 1 and 2
             else:
