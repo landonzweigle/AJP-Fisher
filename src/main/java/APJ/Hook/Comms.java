@@ -135,15 +135,19 @@ public class Comms extends Thread{
 	//repeat.	
 	private void FrameByFramePlayGame() throws Exception {	
 		int recvMsg;
-		GameState initState = getGameState();
-		sendStr(initState.toString());
-		
-		FishGame.nextFrame();
+		int action;
+		GameState initState;
 		while((recvMsg=recvInt())!=0) {
 			if(recvMsg==10) {}else if(recvMsg==5) {
 				FishGame.startGame(true);
 				initState = getGameState();
 				sendStr(initState.toString());
+				
+				//Get the next action from python:
+				action = recvInt();
+				boolean reelIn = (action==0)?false:(action==1)?true:null;
+				FishGame.setReelIn(reelIn);
+				
 				FishGame.nextFrame();
 			}
 			//Wait until frame processed:
@@ -156,10 +160,10 @@ public class Comms extends Thread{
 			
 			String state = curState.toString();
 			sendStr(state);
+
 			//Get the next action from python:
-			int action = recvInt();
+			action = recvInt();
 			boolean reelIn = (action==0)?false:(action==1)?true:null;
-			
 			FishGame.setReelIn(reelIn);
 			
 			FishGame.nextFrame();

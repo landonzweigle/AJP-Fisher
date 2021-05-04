@@ -62,10 +62,10 @@ Tstd = [stdRein]
 #SPECIFIC ML VARS:
 ####################
 
-framesPerTrial = 5
-nTrials = 177
+framesPerTrial = 150
+nTrials = 500
 
-nHidden = [80,20,80]
+nHidden = [30, 30]
 n_epochs = 200
 learningRate = 0.05
 
@@ -97,31 +97,23 @@ def runFrameByFrame(JPC):
     FramesToPlay = framesPerTrial * nTrials
     trialTracker = 0
 
+    r_sum = 0
+    r_last_2 = 0
+    epsilon=Epsilon 
+    meanRein = []
+    pastStateActions = []
+    
     debug()
+
 
     X = np.zeros((framesPerTrial, DQN.n_inputs))
     R = np.zeros((framesPerTrial, 1))
     Qn = np.zeros((framesPerTrial, 1))
 
-    r_sum = 0
-    r_last_2 = 0
-    epsilon=Epsilon 
-
     frameCount = 1
-    msgToSend = 10
-
-    arrr = JPC.recvStr()
-    initStateStr = arrr[1:-1].split(',');
-    initState = list([int(val.split(':')[-1]) for val in initStateStr])
-    s = initState
-    
-    a, _ign = DQN.EpsilonGreedyUse(s)
-
-    meanRein = []
-    pastStateActions = []
 
     resetMsg = 5
-
+    msgToSend = resetMsg
     while(frameCount <= FramesToPlay):
         JPC.sendInt(msgToSend)
         if(msgToSend==resetMsg):
@@ -131,12 +123,14 @@ def runFrameByFrame(JPC):
 
             # fixedState = getFixedState(s)
             a, _ign = DQN.EpsilonGreedyUse(s)
+            JPC.sendInt(int(a))
+
 
         step = (frameCount-1) % framesPerTrial
         #make sure that the frame has processed:
         allGood = JPC.recvInt()
         if(allGood != 10):
-            raise Exception("Java encountered an error")
+            raise Exception("Java encountered an error (allGood wasn't 10)")
 
         
         #################
@@ -197,9 +191,6 @@ def runFrameByFrame(JPC):
 
             if(resetScenePerTrial):
                 msgToSend = resetMsg
-                s = initState
-
-                a, _ign = DQN.EpsilonGreedyUse(s)
 
 
         else:
@@ -242,14 +233,6 @@ def savePlot(meanReinforcements):
 
     meanReinforcements = np.array(meanReinforcements)
 
-    try:
-        nAverages = np.array(np.array_split(meanReinforcements, averageNTrialSplits)).T
-        positions = [(avgNTrialsRange/2) + (avgNTrialsRange * i) for i in range(averageNTrialSplits)]
-
-        plt.boxplot(nAverages, positions=positions, widths=1, manage_ticks=False)
-    except:
-        pass
-
     plt.plot(range(1, len(meanReinforcements)+1), meanReinforcements, alpha=0.5)
 
     binSize = 20
@@ -258,6 +241,10 @@ def savePlot(meanReinforcements):
 
     nTicks = 10
     tickIncrement = nTrials / nTicks
+
+    modelInfo = "fpt %s, hl: %s, epochs: %s, gamma: %s, lr: %s" % (framesPerTrial, nHidden, n_epochs, gamma, learningRate)
+
+    plt.title(modelInfo)
 
     plt.xticks(np.arange(1,len(meanReinforcements)+100,tickIncrement))
     plt.savefig(out)
