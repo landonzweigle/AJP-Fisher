@@ -174,7 +174,6 @@ public class Comms extends Thread{
 		
 		
 		
-		//vector is defined as: target - origin.
 		GameState _ret = new GameState((int)CA.getY(), (int)Fish.getY(), (int)CA.getyVel(), (int)Fish.getyVel(), Fish.collidingWith(CA));
 		return _ret;		
 	}

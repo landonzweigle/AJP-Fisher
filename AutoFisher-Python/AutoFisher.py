@@ -91,13 +91,6 @@ doDebug = False
 
 
 def runFrameByFrame(JPC):
-    def getFixedState(state):
-        bPos, fPos, bVel, fVel, col = state
-        
-        fbPos = (bPos /  abs(bPos) if(bPos != 0) else 0) if( not col ) else 0
-        ffPos = (fPos /  abs(fPos) if(fPos != 0) else 0) if( not col ) else 0
-        return fbPos, ffPos, bVel, fVel, col
-
     print("running %s total frames" % (nTrials * framesPerTrial))
     print("ExperimentArgs:")
     print(framesPerTrial, nTrials, nHidden, n_epochs, learningRate, gamma,sep='\n')
@@ -122,8 +115,6 @@ def runFrameByFrame(JPC):
     initState = list([int(val.split(':')[-1]) for val in initStateStr])
     s = initState
     
-    fixedState = getFixedState(s)
-
     a, _ign = DQN.EpsilonGreedyUse(s)
 
     meanRein = []
@@ -160,8 +151,8 @@ def runFrameByFrame(JPC):
         # fixedState = getFixedState(state)
         sn = state
 
-        rn = DQN.getReinforcement(state)    # Calculate resulting reinforcement
-        an, qn = DQN.EpsilonGreedyUse(state)  # choose next action
+        rn = DQN.getReinforcement(sn)    # Calculate resulting reinforcement
+        an, qn = DQN.EpsilonGreedyUse(sn)  # choose next action
         X[step, :] = np.hstack((s, a))
         R[step, 0] = rn
         Qn[step, 0] = qn
@@ -207,8 +198,6 @@ def runFrameByFrame(JPC):
             if(resetScenePerTrial):
                 msgToSend = resetMsg
                 s = initState
-
-                # fixedState = getFixedState(s)
 
                 a, _ign = DQN.EpsilonGreedyUse(s)
 
