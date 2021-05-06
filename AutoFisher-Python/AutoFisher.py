@@ -133,11 +133,6 @@ def runFrameByFrame(JPC):
         allGood = JPC.recvInt()
         if(allGood != 10):
             raise Exception("Java encountered an error (allGood wasn't 10)")
-
-        
-        #################
-        # MAIN LOOP
-        #################
         
         #get the state:
         stateStr = JPC.recvStr()
