@@ -143,12 +143,6 @@ public class Comms extends Thread{
 				initState = getGameState();
 				sendStr(initState.toString());
 				
-				//Get the next action from python:
-				action = recvInt();
-				boolean reelIn = (action==0)?false:(action==1)?true:null;
-				FishGame.setReelIn(reelIn);
-				
-				FishGame.nextFrame();
 			}
 
 			

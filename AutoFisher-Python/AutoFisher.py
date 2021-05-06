@@ -123,7 +123,6 @@ def runFrameByFrame(JPC):
 
             # fixedState = getFixedState(s)
             a, _ign = DQN.EpsilonGreedyUse(s)
-            JPC.sendInt(int(a))
 
 
         #tell java to make this action:
