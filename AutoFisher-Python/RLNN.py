@@ -202,6 +202,7 @@ class RLNeuralNetwork():
         
         return action, Q   # return the chosen action and Q(state, action)
 
+
     #(Try to minimize this; the best case is #0 and the worst is case #-1):
     #returns:
     #r1: 0 if posA==posB (deltaP == 0) AND velA==velB
@@ -228,9 +229,8 @@ class RLNeuralNetwork():
             else:
                 return 1
         else:
-            percDiff = abs(deltaP / (687-35))
+            percDiff = abs(deltaP) / (687-35)
             if(normdeltaP!=bobberVel):
-                return percDiff + 1 #will be betweeen 1 and 2
+                return 2#percDiff + 1 #will be betweeen 1 and 2
             else:
                 return 3
-        
