@@ -150,6 +150,15 @@ public class Comms extends Thread{
 				
 				FishGame.nextFrame();
 			}
+
+			
+			//Get the next action from python:
+			int action = recvInt();
+			boolean reelIn = (action==0)?false:(action==1)?true:null;
+			FishGame.setReelIn(reelIn);
+			
+			FishGame.nextFrame();
+
 			//Wait until frame processed:
 			while(!FishGame.isFrameProccessed()) {}
 			
@@ -160,6 +169,7 @@ public class Comms extends Thread{
 			
 			String state = curState.toString();
 			sendStr(state);
+<<<<<<< Updated upstream
 
 			//Get the next action from python:
 			action = recvInt();
@@ -167,6 +177,8 @@ public class Comms extends Thread{
 			FishGame.setReelIn(reelIn);
 			
 			FishGame.nextFrame();
+=======
+>>>>>>> Stashed changes
 		}
 		FishGame.print("Python ended");
 	}

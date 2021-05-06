@@ -126,6 +126,9 @@ def runFrameByFrame(JPC):
             JPC.sendInt(int(a))
 
 
+        #tell java to make this action:
+        JPC.sendInt(int(a))
+        
         step = (frameCount-1) % framesPerTrial
         #make sure that the frame has processed:
         allGood = JPC.recvInt()
@@ -160,8 +163,6 @@ def runFrameByFrame(JPC):
         debug("taking action: " + str(a))
         debug("-----")
         
-        #tell java to make this action:
-        JPC.sendInt(int(a))
 
 
         #######
