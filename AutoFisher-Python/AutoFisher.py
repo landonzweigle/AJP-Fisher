@@ -62,11 +62,11 @@ Tstd = [stdRein]
 #SPECIFIC ML VARS:
 ####################
 
-framesPerTrial = 5
-nTrials = 20
+framesPerTrial = 20
+nTrials = 1000
 
 nHidden = [30, 30]
-n_epochs = 200
+n_epochs = 50
 learningRate = 0.05
 
 Epsilon = 1.
