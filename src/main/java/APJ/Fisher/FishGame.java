@@ -143,9 +143,9 @@ public class FishGame extends Application {
 // Begin Variables to be changed per gamemode change (essentially whenever Mode_Idle_out)
 
 	// The capture area.
-	public static Sprite CA = new Sprite();
+	public static volatile Sprite CA = new Sprite();
 	// The fish
-	public static Sprite fish = new Sprite();
+	public static volatile Sprite fish = new Sprite();
 	// The bar
 	public static Image bar;
 	// players current points (to capture fish).
@@ -241,7 +241,7 @@ public class FishGame extends Application {
 	// Used whenever we need to reset the sprites.
 	// Parameters: none
 	// Returns: none.
-	public static void startGame(boolean randomPositions) {
+	public static synchronized void startGame(boolean randomPositions) {
 		
 		ttc = 0;
 		actualManditoryWait = 0;
