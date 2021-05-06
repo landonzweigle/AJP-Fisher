@@ -62,8 +62,8 @@ Tstd = [stdRein]
 #SPECIFIC ML VARS:
 ####################
 
-framesPerTrial = 150
-nTrials = 500
+framesPerTrial = 5
+nTrials = 20
 
 nHidden = [30, 30]
 n_epochs = 200
