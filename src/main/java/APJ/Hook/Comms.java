@@ -48,8 +48,10 @@ public class Comms extends Thread{
 			int nDeltaP = (deltaP!=0) ? deltaP / Math.abs(deltaP) : 0;
 			nDeltaP = (this.colliding) ? 0 : nDeltaP;
 			
-			String _ret = "<deltaP: %s, bSV: %s, fSV: %s>";
-			_ret = String.format(_ret, nDeltaP, bobberSimVel, fishSimVel);
+			int col = (colliding==true)? 1 : 0;
+			
+			String _ret = "<bP: %s, fP: %s, bSV: %s, fSV: %s, col: %s>";
+			_ret = String.format(_ret, this.bobberPos, this.fishPos, bobberSimVel, fishSimVel, col);
 			return _ret;
 		}
 	}
@@ -133,17 +135,24 @@ public class Comms extends Thread{
 	//repeat.	
 	private void FrameByFramePlayGame() throws Exception {	
 		int recvMsg;
-		GameState initState = getGameState();
-		sendStr(initState.toString());
-		
-		FishGame.nextFrame();
+		int action;
+		GameState initState;
 		while((recvMsg=recvInt())!=0) {
 			if(recvMsg==10) {}else if(recvMsg==5) {
 				FishGame.startGame(true);
 				initState = getGameState();
 				sendStr(initState.toString());
-				FishGame.nextFrame();
+				
 			}
+
+			
+			//Get the next action from python:
+			action = recvInt();
+			boolean reelIn = (action==0)?false:(action==1)?true:null;
+			FishGame.setReelIn(reelIn);
+			
+			FishGame.nextFrame();
+
 			//Wait until frame processed:
 			while(!FishGame.isFrameProccessed()) {}
 			
@@ -154,13 +163,7 @@ public class Comms extends Thread{
 			
 			String state = curState.toString();
 			sendStr(state);
-			//Get the next action from python:
-			int action = recvInt();
-			boolean reelIn = (action==0)?false:(action==1)?true:null;
-			
-			FishGame.setReelIn(reelIn);
-			
-			FishGame.nextFrame();
+
 		}
 		FishGame.print("Python ended");
 	}
@@ -172,7 +175,6 @@ public class Comms extends Thread{
 		
 		
 		
-		//vector is defined as: target - origin.
 		GameState _ret = new GameState((int)CA.getY(), (int)Fish.getY(), (int)CA.getyVel(), (int)Fish.getyVel(), Fish.collidingWith(CA));
 		return _ret;		
 	}

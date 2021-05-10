@@ -202,6 +202,7 @@ class RLNeuralNetwork():
         
         return action, Q   # return the chosen action and Q(state, action)
 
+
     #(Try to minimize this; the best case is #0 and the worst is case #-1):
     #returns:
     #r1: 0 if posA==posB (deltaP == 0) AND velA==velB
@@ -216,16 +217,20 @@ class RLNeuralNetwork():
 
     @staticmethod
     def getReinforcement(state):
-        deltaP, bobberVel, fishVel = state
+        bobberPos, fishPos, bobberVel, fishVel, colliding = state
 
-        if(deltaP==0):
+        deltaP = fishPos - bobberPos
+        normdeltaP = (deltaP / abs(deltaP) if(deltaP != 0) else 0) if (not colliding) else 0
+
+
+        if(colliding):
             if(fishVel==bobberVel):
                 return 0
             else:
                 return 1
         else:
-            if(deltaP==bobberVel):
-                return 2
+            percDiff = abs(deltaP) / (687-35)
+            if(normdeltaP!=bobberVel):
+                return percDiff + 1 #will be betweeen 1 and 2
             else:
                 return 3
-        
